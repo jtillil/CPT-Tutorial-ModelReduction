@@ -8,13 +8,14 @@ addpath(genpath('Indices'))
 
 % model.name = 'Hornberg2005EGFRsignalling';
 % model.name = 'Wajim12009BloodCoagulation';
-model.name = 'SimpleParallelPathways';
-% model.name = 'MMEnzymeKinetics';
+% model.name = 'SimpleParallelPathways';
+model.name = 'MMEnzymeKinetics';
 
 % model.scenario = 'Cpss_EpCenv';
-model.scenario = 'with_crosstalk';
+% model.scenario = 'with_crosstalk';
+model.scenario = 'Cpss_EpCenv';
 
-model.name_short = 'SPP';
+model.name_short = 'MMK';
 model.scenario_short = model.scenario;
 
 model = feval([model.name '_model_set_up_details'],model);

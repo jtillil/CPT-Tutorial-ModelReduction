@@ -162,8 +162,8 @@ if isempty(model.jacfun)
     dW_matrix = numjacfun(t,X,model) * W_matrix;
 else
     % use analytical jacobian
-    % dW_matrix = model.jacfun(t,X,par,model) * W_matrix;
-    dW_matrix = model.jacfun(X,par) * W_matrix;
+    dW_matrix = model.jacfun(t,X,par,model) * W_matrix;
+    % dW_matrix = model.jacfun(X,par) * W_matrix;
 end
 
 dextX = [dX;dW_matrix(:)];
@@ -207,8 +207,8 @@ extodejacpat = zeros(nstates+nstates^2);
 
 % initialize the jacobian 
 X_test = ones(model.I.nstates,1); % ok for this jacobian
-% DF = model.jacfun(0,X_test,model.par,model);
-DF = model.jacfun(X_test,model.par);
+DF = model.jacfun(0,X_test,model.par,model);
+% DF = model.jacfun(X_test,model.par);
 
 % check if there are NaN or Inf entries
 if any(isinf(DF),'all') || any(isnan(DF),'all')
