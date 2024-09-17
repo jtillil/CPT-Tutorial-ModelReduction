@@ -12,7 +12,7 @@ model.name = 'SimpleParallelPathways';
 % model.name = 'MMEnzymeKinetics';
 
 % model.scenario = 'Cpss_EpCenv';
-model.scenario = 'no_crosstalk';
+model.scenario = 'with_crosstalk';
 
 model.name_short = 'SPP';
 model.scenario_short = model.scenario;

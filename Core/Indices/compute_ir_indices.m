@@ -150,8 +150,8 @@ I  = model.I;
 X = extX(1:I.nstates);
 W = extX(I.nstates+1:end);
 
-% dX = model.odefun(t,X,par,model);
-dX = model.odefun(X,par);
+dX = model.odefun(t,X,par,model);
+% dX = model.odefun(X,par);
 
 %%% calculate wronski matrix
 W_matrix = reshape(W,I.nstates,I.nstates);
