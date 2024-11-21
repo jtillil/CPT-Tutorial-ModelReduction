@@ -1,4 +1,4 @@
-function [L_old,newOutputIndex]=lumping(Model)
+function [L_old,newOutputIndex]=lumping_Jane(Model)
 %%% lumping algorithm based on the paper by A. Dokoumetzidis and L.Aarons
 %%% 'Proper lumping in systems biology models'
 TOL             = Model.lumping.TOL;

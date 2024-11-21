@@ -1,0 +1,11 @@
+Data
+*.mat
+*.asv
+*.pdf
+*.png
+*.html
+*.mp4
+*.csv
+*/graph_files
+*.Rdata
+*.DS_Store

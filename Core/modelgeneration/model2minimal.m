@@ -22,6 +22,7 @@ if isfield(bigmodel, 'L')
 end
 model.t_ref = bigmodel.t_ref;
 model.X_ref = bigmodel.X_ref;
+% model.yfun = @(model, xt) xt TODO ;
 % model.ode = bigmodel.ode;
 % model.jac = bigmodel.jac;
 % model.odefun = bigmodel.odefun;
@@ -191,5 +192,7 @@ model = model2consts(model);
 
 %% re-calculate reference solution
 
+%% calculate gramian(s)
+model = model2gramian(model);
 
 end
