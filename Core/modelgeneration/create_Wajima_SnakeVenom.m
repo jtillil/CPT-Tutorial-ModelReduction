@@ -2,6 +2,8 @@
 % model
 
 % change relevant properties
+model.I = config2I(model.I, repmat("dyn", [1, model.I.nstates]), model.L);
+
 model.scenario = 'in_vivo_snake_venom';
 
 model.I.input = model.I.AVenom;
@@ -26,3 +28,6 @@ model.t_ref = 0.0:0.1:40.0; % 40h
 
 % save model
 save("modelfiles/modelBCSnake_minimal.mat", "model")
+
+% plot
+plot(model.t_ref, model.X_ref(:, model.I.output));

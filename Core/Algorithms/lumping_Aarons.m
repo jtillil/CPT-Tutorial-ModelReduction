@@ -27,7 +27,7 @@ out_states = zeros(1, 1);
 for i = 1:n-1
     Combinations            = nchoosek(1:(n+1-i),2);
     Error                   = zeros(1,nchoosek(n+1-i, 2));
-    new_out_state           = zeros(1,nchoosek(n+1-i, 2));
+    new_out_states          = zeros(1,nchoosek(n+1-i, 2));
     L_pre                   = eye(n-i,n-i);
     L_poss                  = zeros(n-i,n-i+1,size(Combinations,1));
     L                       = zeros(n-i,n,size(Combinations,1));
@@ -69,7 +69,8 @@ for i = 1:n-1
         % else
             X0_new = L(:,:,k) * X0;
         % end
-        [~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),t_ref,X0_new,model);
+        options.Jacobian = @(t,X) jac_lumping(X, par, model);
+        [~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),t_ref,X0_new,options);
         try
             Error(k) = relativeErrorL2(t_ref, X_full(:, output_state), X_current(:, new_out_states(k)));
         catch
@@ -102,4 +103,8 @@ end
 
 function dX = ode_lumping(X, par, model)
     dX = model.lumping.lumpmat * model.odefun(model.lumping.invlumpmat * X,par);
+end
+
+function dX2 = jac_lumping(X, par, model)
+    dX2 = model.lumping.lumpmat * model.jacfun(model.lumping.invlumpmat * X,par);
 end
