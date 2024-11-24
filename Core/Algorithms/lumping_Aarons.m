@@ -13,7 +13,13 @@ X0              = model.X0;
 par             = model.par;
 t_ref           = model.t_ref;
 output_state    = model.I.output;
-[t_full,X_full] = ode15s(@(t,X) model.odefun(X,par),t_ref,X0,model);
+options = odeset;
+% options.Jacobian = @(t,X) jac_lumping(X, par, model);
+options.AbsTol = 1;
+options.RelTol = 1e-3;
+% options.InitialStep = 1e-2;
+options.NonNegative = 1:model.I.nstates;
+[t_full,X_full] = ode15s(@(t,X) model.odefun(X,par),t_ref,X0,options);
 X_out           = X_full(:,output_state);
 L_old           = eye(n);
 new_out_state   = model.I.output;
@@ -69,7 +75,12 @@ for i = 1:n-1
         % else
             X0_new = L(:,:,k) * X0;
         % end
-        options.Jacobian = @(t,X) jac_lumping(X, par, model);
+        options = odeset;
+        % options.Jacobian = @(t,X) jac_lumping(X, par, model);
+        options.AbsTol = 1;
+        options.RelTol = 1e-3;
+        % options.InitialStep = 1e-2;
+        options.NonNegative = 1:(model.I.nstates-i);
         [~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),t_ref,X0_new,options);
         try
             Error(k) = relativeErrorL2(t_ref, X_full(:, output_state), X_current(:, new_out_states(k)));
