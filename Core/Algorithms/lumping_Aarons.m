@@ -58,7 +58,7 @@ for i = 1:n-1
         model.lumping.lumpmat = L(:,:,k);
         model.lumping.invlumpmat = InvL(:,:,k);
         % end
-        if Combinations(k,:) < new_out_state
+        if any(Combinations(k,:) <= new_out_state)
             new_out_states(k) = new_out_state - 1;
         else
             new_out_states(k) = new_out_state;
@@ -89,7 +89,7 @@ for i = 1:n-1
         end
     end
     [~, Ind] = min(Error);
-    if Combinations(Ind, :) < new_out_state
+    if any(Combinations(Ind, :) <= new_out_state)
         new_out_state = new_out_state - 1;
     end
     % update output
