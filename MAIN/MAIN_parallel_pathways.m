@@ -1,12 +1,27 @@
 %% Setup
-addpath(genpath("../../CPT-Tutorial-ModelReduction"))
+addpath(genpath("../../../CPT-Tutorial-ModelReduction"))
+reduced_errors = struct;
 
-%% Scenario 1
+%% Scenario 1 - no crosstalk
 % load model file
-load("modelMMK_Cpss_Eenv_full.mat")
+load("modelSPP_no_crosstalk_full.mat")
 
-% 
+% lumping
+[lump_matrices,inv_lump_matrices,errors,out_states] = lumping_Aarons(model);
 
-%% Scenario 2
+reduced_errors.lumping_no_crosstalk(1,1) = calculate_lumping_error(model, lump_matrices{1});
+
+% S env
+
+% S 
+
+%% Scenario 2 - with crosstalk
 % load model file
-load("modelMMK_Cpss_EpCenv_full.mat")
+load("modelSPP_with_crosstalk_full.mat")
+
+%% Analyze both scenarios
+
+
+%% Save results
+
+save("./results/errors_SPP.mat", "reduced_errors")

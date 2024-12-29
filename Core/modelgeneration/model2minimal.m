@@ -33,6 +33,27 @@ model.X_ref = bigmodel.X_ref;
 if isfield(bigmodel, 'analysis')
     model.analysis = bigmodel.analysis;
 end
+if isfield(bigmodel, 'ir')
+    model.ir = bigmodel.ir;
+end
+if isfield(bigmodel, 'contr')
+    model.contr = bigmodel.contr;
+end
+if isfield(bigmodel, 'obs')
+    model.obs = bigmodel.obs;
+end
+if isfield(bigmodel, 'env')
+    model.env = bigmodel.env;
+end
+if isfield(bigmodel, 'pneg')
+    model.pneg = bigmodel.pneg;
+end
+if isfield(bigmodel, 'cneg')
+    model.cneg = bigmodel.cneg;
+end
+if isfield(bigmodel, 'pss')
+    model.pss = bigmodel.pss;
+end
 if isfield(bigmodel, 'irenv_arith')
     model.I.Irenv_arith = bigmodel.irenv_arith;
 else
@@ -193,6 +214,6 @@ model = model2consts(model);
 %% re-calculate reference solution
 
 %% calculate gramian(s)
-model = model2gramian(model);
+% model = model2gramian(model);
 
 end

@@ -1,8 +1,10 @@
-function [lump_matrices,inv_lump_matrices,errors,out_states]=calculate_lumping_error(model, lump_matrix)
+function error = calculate_lumping_error(model, lump_matrix)
 %%% take a model and a lumping matrix to calculate the lumping error
 
-inv_lump_matrix = pinv(lump_matrix);
-out_state = find(lump_matrix(model.I.output, :) ~= 0);
+par = model.par;
+model.lumping.lumpmat = lump_matrix;
+model.lumping.invlumpmat = pinv(lump_matrix);
+out_state = find(lump_matrix(:, model.I.output) ~= 0);
 
 X0_new = lump_matrix * model.X0;
 
@@ -11,116 +13,13 @@ options = odeset;
 options.AbsTol = 1;
 options.RelTol = 1e-3;
 % options.InitialStep = 1e-2;
-options.NonNegative = 1:(model.I.nstates-i);
+options.NonNegative = 1:size(lump_matrix, 1);
 
-[~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),t_ref,X0_new,options);
+[~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),model.t_ref,X0_new,options);
 try
-    Error(k) = relativeErrorL2(t_ref, X_full(:, output_state), X_current(:, new_out_states(k)));
+    error = relativeErrorL2(model.t_ref, model.X_ref(:, model.I.output), X_current(:, out_state));
 catch
-    Error(k) = Inf;
-end
-
-%% setup
-% TOL             = 1e-1;
-n               = model.I.nstates;
-% P               = model.ODE.Matrix;
-X0              = model.X0;
-par             = model.par;
-t_ref           = model.t_ref;
-output_state    = model.I.output;
-options = odeset;
-% options.Jacobian = @(t,X) jac_lumping(X, par, model);
-options.AbsTol = 1;
-options.RelTol = 1e-3;
-% options.InitialStep = 1e-2;
-options.NonNegative = 1:model.I.nstates;
-[t_full,X_full] = ode15s(@(t,X) model.odefun(X,par),t_ref,X0,options);
-X_out           = X_full(:,output_state);
-L_old           = eye(n);
-new_out_state   = model.I.output;
-
-%% lumping
-lump_matrices = cell(1, 1);
-inv_lump_matrices = cell(1, 1);
-errors = zeros(1, 1);
-out_states = zeros(1, 1);
-
-for i = 1:n-1
-    Combinations            = nchoosek(1:(n+1-i),2);
-    Error                   = zeros(1,nchoosek(n+1-i, 2));
-    new_out_states          = zeros(1,nchoosek(n+1-i, 2));
-    L_pre                   = eye(n-i,n-i);
-    L_poss                  = zeros(n-i,n-i+1,size(Combinations,1));
-    L                       = zeros(n-i,n,size(Combinations,1));
-    InvL                    = zeros(n,n-i,size(Combinations,1));
-    % model.ODE.SpecMatrix    = 'Lumping';
-    
-    fprintf(char(string(i)))
-    fprintf(char(" "))
-    fprintf(char(string(size(Combinations,1))))
-    fprintf(char(" "))
-    for k = 1:size(Combinations,1)
-        fprintf(char(string(k)))
-        L_poss(:,:,k)           = [L_pre(:, 1:Combinations(k,2)-1), ...
-                                   L_pre(:, Combinations(k,1)), ...
-                                   L_pre(:, Combinations(k,2):end)];
-        L(:,:,k)                = L_poss(:,:,k) * L_old;
-        InvL(:,:,k)             = pinv(L(:,:,k));
-        % if isfield(model,'environmentSpecies') 
-        %     model.ODE.Matrix        = [L(:,:,k) zeros(size(L(:,:,k),1),length(model.environmentSpecies)); zeros(length(model.environmentSpecies),n) eye(length(model.environmentSpecies))]*P;
-        %     model.ODE.InvLumpMatrix = P'*[InvL(:,:,k) zeros(n,length(model.environmentSpecies));zeros(length(model.environmentSpecies),size(L(:,:,k),1)) eye(length(model.environmentSpecies))];
-        % else
-        model.lumping.lumpmat = L(:,:,k);
-        model.lumping.invlumpmat = InvL(:,:,k);
-        % end
-        if any(Combinations(k,:) <= new_out_state)
-            new_out_states(k) = new_out_state - 1;
-        else
-            new_out_states(k) = new_out_state;
-        end
-        % switch model.lumping.flag
-        %     case 1
-        %         if Combinations(k,1)==new_out_state || Combinations(k,2)==new_out_state
-        %             Error(k)=Inf;
-        %         continue;
-        %         end
-        % end
-        % if isfield(model,'environmentSpecies') 
-        %     X0_new = [L(:,:,k) zeros(size(L(:,:,k),1),length(model.environmentSpecies)); zeros(length(model.environmentSpecies),n) eye(length(model.environmentSpecies))]*X0;
-        % else
-            X0_new = L(:,:,k) * X0;
-        % end
-        options = odeset;
-        % options.Jacobian = @(t,X) jac_lumping(X, par, model);
-        options.AbsTol = 1;
-        options.RelTol = 1e-3;
-        % options.InitialStep = 1e-2;
-        options.NonNegative = 1:(model.I.nstates-i);
-        [~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),t_ref,X0_new,options);
-        try
-            Error(k) = relativeErrorL2(t_ref, X_full(:, output_state), X_current(:, new_out_states(k)));
-        catch
-            Error(k) = Inf;
-        end
-    end
-    [~, Ind] = min(Error);
-    if any(Combinations(Ind, :) <= new_out_state)
-        new_out_state = new_out_state - 1;
-    end
-    % update output
-    lump_matrices{i} = L(:,:,Ind);
-    inv_lump_matrices{i} = pinv(L(:,:,Ind));
-    errors(i) = min(Error);
-    out_states(i) = new_out_state;
-    
-    % if min(Error) < TOL
-        L_old = L(:,:,Ind);
-    % else
-    %     break;
-    % end
-    clear Error
-    fprintf(char("\n"))
-end
+    error = Inf;
 end
 
 function Error=relativeErrorL2(t,X,Y)
@@ -133,4 +32,6 @@ end
 
 function dX2 = jac_lumping(X, par, model)
     dX2 = model.lumping.lumpmat * model.jacfun(model.lumping.invlumpmat * X,par);
+end
+
 end
