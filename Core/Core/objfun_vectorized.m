@@ -26,7 +26,11 @@ log_required = (nargin > 8);
 Nconfigs = size(mat_vector_config, 1);
 
 % prepare objects to return and to append to log
-vector_objvals = zeros(Nconfigs, 4);
+if variability
+    vector_objvals = zeros(Nconfigs, 6);
+else
+    vector_objvals = zeros(Nconfigs, 4);
+end
 if log_required
     err = zeros(Nconfigs, model.I.nstates);
     outflags = strings([Nconfigs, 1]);
@@ -42,7 +46,11 @@ multiple = model.multiple;
 I = model.I;
 L = model.L;
 odefun = model.odefun;
-jacfun = model.jacfun;
+if isfield(model, "jacfun")
+    jacfun = model.jacfun;
+else
+    jacfun = [];
+end
 
 % parfor nconfig = 1:Nconfigs
 %     [obj, objlog, ~, ~, errentry] = objfun(t_ref, X0, par, model, mat_vector_config(nconfig, :), timeout);
@@ -108,21 +116,46 @@ end
 if variability
     for nconfig = 1:Nconfigs
         ndyn = -1;
-        errout = zeros([1 Npop]);
-        errdyn100 = zeros([1 Npop]);
-        simtime = zeros([1 Npop]);
-        for npop = 1:Npop
+        % obtain virtual pop results
+        errout = zeros([1 Npop-1]);
+        errdyn100 = zeros([1 Npop-1]);
+        simtime = zeros([1 Npop-1]);
+        for npop = 2:Npop
             parfevalID = (nconfig - 1) * Npop + npop;
             if ~cancelled(parfevalID)
-                [obj, objlog, ~, ~, errentry] = f(parfevalID).fetchOutputs();
+                [obj, ~, ~, ~, ~] = f(parfevalID).fetchOutputs();
                 errout(npop) = obj.errout;
+                if ~isfield(obj, 'errdyn100')
+                    obj.errdyn100 = 9e6;
+                elseif (isempty(obj.errdyn100) || isnan(obj.errdyn100))
+                    obj.errdyn100 = 9e6;
+                end
                 errdyn100(npop) = obj.errdyn100;
                 simtime(npop) = obj.simtime;
                 ndyn = obj.ndyn;
             else
-                errout(npop) = 1e6;
-                errdyn100(npop) = 1e6;
-                simtime(npop) = 1e6;
+                errout(npop) = 2e6;
+                errdyn100(npop) = 2e6;
+                simtime(npop) = 2e6;
+            end
+        end
+        % obtain reference parametrization results
+        errout_ref = 0;
+        errdyn100_ref = 0;
+        for npop = 1
+            parfevalID = (nconfig - 1) * Npop + npop;
+            if ~cancelled(parfevalID)
+                [obj, ~, ~, ~, ~] = f(parfevalID).fetchOutputs();
+                errout_ref = obj.errout;
+                if ~isfield(obj, 'errdyn100')
+                    obj.errdyn100 = 1e6;
+                elseif (isempty(obj.errdyn100) || isnan(obj.errdyn100))
+                    obj.errdyn100 = 1e6;
+                end
+                errdyn100_ref = obj.errdyn100;
+            else
+                errout_ref = 2e6;
+                errdyn100_ref = 2e6;
             end
         end
         if ndyn == -1
@@ -136,15 +169,16 @@ if variability
         % if ~isfield(obj, 'errout')
         %     obj.errout = 1e6;
         % end
-        if ~isfield(obj, 'errdyn100')
-            obj.errdyn100 = 1e6;
-        elseif (isempty(obj.errdyn100) || isnan(obj.errdyn100))
-            obj.errdyn100 = 1e6;
-        end
     
         % save future outputs
         % vector_objvals(nconfig, :) = [obj.ndyn obj.errout obj.errdyn100 seconds(f(nconfig).RunningDuration)];
-        vector_objvals(nconfig, :) = [ndyn prctile(errout, 90) prctile(errdyn100, 90) mean(simtime)];
+        if any(isnan(errout)) || any(isnan(errdyn100))
+            vector_objvals(nconfig, :) = [model.I.nstates+1, 3e6, 3e6, 3e6, 3e6, 3e6];
+        elseif isnan(errout_ref) || isnan(errdyn100_ref)
+            vector_objvals(nconfig, :) = [model.I.nstates+1, 4e6, 4e6, 4e6, 4e6, 4e6];
+        else
+            vector_objvals(nconfig, :) = [ndyn prctile(errout, 90) prctile(errdyn100, 90) mean(simtime) errout_ref errdyn100_ref];
+        end
         if log_required
             outflags = '';
             err = 0;

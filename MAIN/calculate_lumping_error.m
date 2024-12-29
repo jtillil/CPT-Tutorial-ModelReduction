@@ -1,9 +1,24 @@
-function [lump_matrices,inv_lump_matrices,errors,out_states]=lumping_Aarons(model)
-%%% lumping algorithm based on the paper by A. Dokoumetzidis and L.Aarons
-%%% 'Proper lumping in systems biology models'
-%%% originally written by Jane Knöchel
-%%% adapted by Johannes Tillil for use in the CPT Tutorial
-%%% on index analysis and model reduction
+function [lump_matrices,inv_lump_matrices,errors,out_states]=calculate_lumping_error(model, lump_matrix)
+%%% take a model and a lumping matrix to calculate the lumping error
+
+inv_lump_matrix = pinv(lump_matrix);
+out_state = find(lump_matrix(model.I.output, :) ~= 0);
+
+X0_new = lump_matrix * model.X0;
+
+options = odeset;
+% options.Jacobian = @(t,X) jac_lumping(X, par, model);
+options.AbsTol = 1;
+options.RelTol = 1e-3;
+% options.InitialStep = 1e-2;
+options.NonNegative = 1:(model.I.nstates-i);
+
+[~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),t_ref,X0_new,options);
+try
+    Error(k) = relativeErrorL2(t_ref, X_full(:, output_state), X_current(:, new_out_states(k)));
+catch
+    Error(k) = Inf;
+end
 
 %% setup
 % TOL             = 1e-1;
@@ -13,7 +28,13 @@ X0              = model.X0;
 par             = model.par;
 t_ref           = model.t_ref;
 output_state    = model.I.output;
-[t_full,X_full] = ode15s(@(t,X) model.odefun(X,par),t_ref,X0,model);
+options = odeset;
+% options.Jacobian = @(t,X) jac_lumping(X, par, model);
+options.AbsTol = 1;
+options.RelTol = 1e-3;
+% options.InitialStep = 1e-2;
+options.NonNegative = 1:model.I.nstates;
+[t_full,X_full] = ode15s(@(t,X) model.odefun(X,par),t_ref,X0,options);
 X_out           = X_full(:,output_state);
 L_old           = eye(n);
 new_out_state   = model.I.output;
@@ -27,6 +48,7 @@ out_states = zeros(1, 1);
 for i = 1:n-1
     Combinations            = nchoosek(1:(n+1-i),2);
     Error                   = zeros(1,nchoosek(n+1-i, 2));
+    new_out_states          = zeros(1,nchoosek(n+1-i, 2));
     L_pre                   = eye(n-i,n-i);
     L_poss                  = zeros(n-i,n-i+1,size(Combinations,1));
     L                       = zeros(n-i,n,size(Combinations,1));
@@ -51,8 +73,8 @@ for i = 1:n-1
         model.lumping.lumpmat = L(:,:,k);
         model.lumping.invlumpmat = InvL(:,:,k);
         % end
-        if Combinations(k,:) < new_out_state
-            new_out_states(k) = new_out_state-1;
+        if any(Combinations(k,:) <= new_out_state)
+            new_out_states(k) = new_out_state - 1;
         else
             new_out_states(k) = new_out_state;
         end
@@ -68,7 +90,13 @@ for i = 1:n-1
         % else
             X0_new = L(:,:,k) * X0;
         % end
-        [~,X_current] = ode15s(@(t,X) ode_lumping(t,X,par,model),t_ref,X0_new,model);
+        options = odeset;
+        % options.Jacobian = @(t,X) jac_lumping(X, par, model);
+        options.AbsTol = 1;
+        options.RelTol = 1e-3;
+        % options.InitialStep = 1e-2;
+        options.NonNegative = 1:(model.I.nstates-i);
+        [~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),t_ref,X0_new,options);
         try
             Error(k) = relativeErrorL2(t_ref, X_full(:, output_state), X_current(:, new_out_states(k)));
         catch
@@ -76,7 +104,7 @@ for i = 1:n-1
         end
     end
     [~, Ind] = min(Error);
-    if Combinations(Ind, :) < new_out_state
+    if any(Combinations(Ind, :) <= new_out_state)
         new_out_state = new_out_state - 1;
     end
     % update output
@@ -99,6 +127,10 @@ function Error=relativeErrorL2(t,X,Y)
 Error=sqrt(trapz(t,(X-Y).^2)/trapz(t,X.^2));
 end
 
-function dX = ode_lumping(t, X, par, model)
+function dX = ode_lumping(X, par, model)
     dX = model.lumping.lumpmat * model.odefun(model.lumping.invlumpmat * X,par);
+end
+
+function dX2 = jac_lumping(X, par, model)
+    dX2 = model.lumping.lumpmat * model.jacfun(model.lumping.invlumpmat * X,par);
 end
