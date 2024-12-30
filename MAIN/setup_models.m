@@ -17,13 +17,13 @@ scenario = 'with_crosstalk';
 setupModel(name, namesimple, scenario, config)
 
 %% enzyme kinetics
-name = 'SimpleParallelPathways';
-namesimple = 'SPP';
-scenario = 'no_crosstalk';
+name = 'MMEnzymeKinetics';
+namesimple = 'MMEK';
+scenario = 'Cpss_Eenv';
 
 setupModel(name, namesimple, scenario, config)
 
-scenario = 'with_crosstalk';
+scenario = 'Cpss_EpCenv';
 
 setupModel(name, namesimple, scenario, config)
 
