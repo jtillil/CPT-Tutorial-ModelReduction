@@ -5,7 +5,7 @@ reduced_errors = struct;
 
 %% Lumping as in Gulati 2014
 % load model file
-load("modelBC_Gulati2014_full.mat")
+load("modelBC_Gulati2014_in_vivo_full.mat")
 model.multiple.multiple = 0;
 
 idxFg = model.I.Fg;
