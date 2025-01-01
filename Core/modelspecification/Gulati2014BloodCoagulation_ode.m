@@ -373,7 +373,7 @@ dX(I.CVenom_Tiger)  =  par(I.ka_Tiger)*X(I.AVenom_Tiger) -par(I.d_Tiger)*X(I.CVe
 dX(I.AT_III_UFH) = par(I.ke_Hep)*X(I.AT_III_UFH)-r44-r45-r46+par(I.inf_rate_UFH);
 
 %%% -----------------------------------------------------------------------
-dX(I.lump) = 0;
+% dX(I.lump) = 0;
 
 
 %%% set derivative of environmental, negligible and conservation law 

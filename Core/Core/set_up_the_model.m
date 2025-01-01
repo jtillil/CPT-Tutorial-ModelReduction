@@ -32,6 +32,7 @@ model.I = I;
 filename = [model.name '_initialvalues'];
 check_if_filename_exists(filename);
 X0 = feval(filename,model);
+model.X0 = X0;
 model.X0prior2input = X0;
 
 % parameter values
@@ -41,8 +42,10 @@ par = feval(filename,model);
 model.par = par;
 
 % determine parameters related to each species
-param = feval([model.name '_species2params'],model);
-model.param = param;
+if exist([model.name '_species2params.mat'], "file") == 2
+    param = feval([model.name '_species2params'],model);
+    model.param = param;
+end
 
 % define input
 I.input  = model.setup.input;

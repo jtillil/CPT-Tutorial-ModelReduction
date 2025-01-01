@@ -19,7 +19,9 @@ addpath(genpath('../Core'))
 model.name = name;
 model.scenario = scenario;
 model.savenameroot = ['./results/' namesimple];
-model = feval([model.name '_model_set_up_details'],model);
+if exist([model.name '_model_set_up_details'], "file") == 2
+    model = feval([model.name '_model_set_up_details'],model);
+end
 model = set_up_the_model(model);
 
 %% calculate indices

@@ -207,8 +207,8 @@ extodejacpat = zeros(nstates+nstates^2);
 
 % initialize the jacobian 
 X_test = ones(model.I.nstates,1); % ok for this jacobian
-DF = model.jacfun(0,X_test,model.par,model);
-% DF = model.jacfun(X_test,model.par);
+% DF = model.jacfun(0,X_test,model.par,model);
+DF = model.jacfun(X_test,model.par);
 
 % check if there are NaN or Inf entries
 if any(isinf(DF),'all') || any(isnan(DF),'all')
