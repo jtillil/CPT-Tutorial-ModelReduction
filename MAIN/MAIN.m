@@ -13,3 +13,6 @@ run("./MAIN_enzyme_kinetics.m")
 run("./MAIN_blood_coagulation.m")
 
 %% Generate figures
+
+run("./figures_example_models.m")
+run("./figures_blood_coagulation.m")
