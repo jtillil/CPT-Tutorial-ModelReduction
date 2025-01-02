@@ -1,4 +1,4 @@
-function error = calculate_lumping_error(model, lump_matrix)
+function [error, X_current] = calculate_lumping_error(model, lump_matrix)
 %%% take a model and a lumping matrix to calculate the lumping error
 
 par = model.par;

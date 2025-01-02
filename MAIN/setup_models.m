@@ -39,6 +39,10 @@ model.X0 = Gulati2014BloodCoagulation_initialvalues(model);
 model.par = Gulati2014BloodCoagulation_parameters(model);
 model.ode = @(t, X) Gulati2014BloodCoagulation_ode(t,X,par,model);
 
+% add relevant components
+model = create_full_model(model);
+model = model2minimal(model);
+
 % calculate indices
 if config.ir
     [ir, contr, obs] = compute_ir_indices(model, false);

@@ -5,7 +5,8 @@ reduced_errors = struct;
 
 %% Lumping as in Gulati 2014
 % load model file
-load("modelBC_Gulati2014_in_vivo_full.mat")
+% load("modelBC_Gulati2014_in_vivo_full.mat")
+load("modelBCSV_minimal.mat")
 model.multiple.multiple = 0;
 
 idxFg = model.I.Fg;
@@ -13,7 +14,7 @@ idxIIa = model.I.IIa;
 idxAvenom = model.I.AVenom;
 idxPvenom = model.I.CVenom;
 
-lumpmat_Gulati = zeros(5, model.I.nstates-1);
+lumpmat_Gulati = zeros(5, model.I.nstates);
 lumpmat_Gulati(5, :) = 1;
 lumpmat_Gulati(1, idxFg) = 1;
 lumpmat_Gulati(5, idxFg) = 0;
