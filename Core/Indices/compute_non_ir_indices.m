@@ -68,10 +68,10 @@ I_deg_states = find(contains(I.nmstate,'deg'));
 relevantstates = sort(setdiff(1:I.nstates,[I_deg_states I.input I.output]),'descend');
 
 %%% only for testing purposes
-if model.quicktest
-    relevantstates = I.output; ntstar = 3; beep;
-    fprintf('\n --> quick test running <-- \n')
-end
+% if model.quicktest
+%     relevantstates = I.output; ntstar = 3; beep;
+%     fprintf('\n --> quick test running <-- \n')
+% end
 
 % If some of the tentatively reduced models results in numerical problem,
 % e.g., intergration tolerance could not be meet etc, then such a reduced

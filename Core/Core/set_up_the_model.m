@@ -42,10 +42,10 @@ par = feval(filename,model);
 model.par = par;
 
 % determine parameters related to each species
-if exist([model.name '_species2params.mat'], "file") == 2
+% if exist([model.name '_species2params.mat'], "file") == 2
     param = feval([model.name '_species2params'],model);
     model.param = param;
-end
+% end
 
 % define input
 I.input  = model.setup.input;

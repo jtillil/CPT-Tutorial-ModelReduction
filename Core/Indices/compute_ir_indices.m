@@ -36,6 +36,10 @@ options.NonNegative = 1:I.nstates;
 if ~isempty(model.jacfun)
     options.JPattern = extodejacpatfun(model);
 end
+% options.AbsTol = 1e-4;
+% options.RelTol = 1e-2;
+% extoptions = options;
+% extoptions.NonNegative = 1:(I.nstates*I.nstates + I.nstates);
 
 % time vectors
 t_ref  = model.t_ref; X_ref = model.X_ref;
@@ -69,7 +73,8 @@ extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
 
 % solving the extended ODE system to obtain J_u(0,t*), including reshaping
 % the output to obtain Jacobian in matrix form (see above)
-[~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
+% [~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
+[~,extX_ref]  = ode23s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
 
 % decompose extended state vector into states and Wronski matrix; initial
 % 'e' indicates that X_ref and eX_ref can be expected to differ due to the
@@ -99,7 +104,8 @@ parfor ts = 1:ntstar-1
     % in matrix form (see above) 
     tstarspan  = t_ref(ts:end);
     extX0_tstar = [eX_ref(ts,:)';W0(:)];
-    [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+    % [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+    [t_tstar,extX_tstar]  = ode23s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
     
     W_tstar = extX_tstar(:,I.nstates+1:end);
     
@@ -150,8 +156,11 @@ I  = model.I;
 X = extX(1:I.nstates);
 W = extX(I.nstates+1:end);
 
-dX = model.odefun(t,X,par,model);
-% dX = model.odefun(X,par);
+if model.ode_is_matlabfun
+    dX = model.odefun(X,par);
+else
+    dX = model.odefun(t,X,par,model);
+end
 
 %%% calculate wronski matrix
 W_matrix = reshape(W,I.nstates,I.nstates);
@@ -162,8 +171,11 @@ if isempty(model.jacfun)
     dW_matrix = numjacfun(t,X,model) * W_matrix;
 else
     % use analytical jacobian
-    dW_matrix = model.jacfun(t,X,par,model) * W_matrix;
-    % dW_matrix = model.jacfun(X,par) * W_matrix;
+    if model.ode_is_matlabfun
+        dW_matrix = model.jacfun(X,par) * W_matrix;
+    else
+        dW_matrix = model.jacfun(t,X,par,model) * W_matrix;
+    end
 end
 
 dextX = [dX;dW_matrix(:)];
@@ -207,8 +219,11 @@ extodejacpat = zeros(nstates+nstates^2);
 
 % initialize the jacobian 
 X_test = ones(model.I.nstates,1); % ok for this jacobian
-% DF = model.jacfun(0,X_test,model.par,model);
-DF = model.jacfun(X_test,model.par);
+if model.ode_is_matlabfun
+    DF = model.jacfun(X_test,model.par);
+else
+    DF = model.jacfun(0,X_test,model.par,model);
+end
 
 % check if there are NaN or Inf entries
 if any(isinf(DF),'all') || any(isnan(DF),'all')

@@ -1,20 +1,20 @@
-%%% Version: July 11th, 2022
+%%% Version: 19 Jun 2022
 %%%
-%%% I  =  Wajima2009BloodCoagulation_indexing
+%%% I  =  <MODELNAME>_indexing
 %%%
-%%% This function defines the indexing for the state variables and parameter vector of 
-%%% the blood coagulation model published by Wajima et al 2009
-%%%
-%%% Parameters are considered as states for observability calculation
+%%% This function defines the indexing for the state variables 
+%%% and parameter vector. As a result, specific state variables
+%%% can be indexed in a human readable format, e.g., to
+%%% access A, use X(I.A). Analogously, the parameter k_d can be 
+%%% accessed via par(I.k_d) etc. 
 %%%
 %%% Input: none
 %%%
 %%% Output: I - indexing vector
 %%%
-%%% 
-%%% Authors: Undine Falkenhagen, Jane Knoechel and Wilhelm Huisinga
 %%%
-
+%%% Authors: Jane Knoechel and Wilhelm Huisinga
+%%%
 
 function I = Wajima2009BloodCoagulation_indexing
 
@@ -26,7 +26,7 @@ I.nmstate = {'XII','XIIa','VIII','VIIIa','IX','IXa','XI','XIa','VII','VIIa','X',
     'PC','APC','Tmod','IIa_Tmod','IXa_VIIIa','TF','VII_TF','VIIa_TF','TFPI',...
     'VK','VKH2','VKO','VK_p','PS','APC_PS','Pk','K','CA','AVenom','CVenom',...
     'AT_III_Heparin','AEnox','Awarf','Cwarf','ENO_p','AUC','TaipanVenom','ATIII',...
-    'delayTaipan1','delayTaipan2','AVenom_Tiger','CVenom_Tiger','AT_III_UFH','lump'}; %,'PT'
+    'delayTaipan1','delayTaipan2','AVenom_Tiger','CVenom_Tiger','AT_III_UFH'};
 
 I.nstates  = length(I.nmstate);  % number (n) of states
 
@@ -82,7 +82,7 @@ I.nmpar = {'v1','k1',... % name (nm) of parameters
     'degFDP','degD','degTFPI','degVIIaTF','degVIITF','degAPCPS','degXaVa',...
     'degIXaVIIIa','degTmod','degIIaTmod','degXaTFPI','degVIIaTFXaTFPI',...
     'degTAT','degCA','degVK','degVK2','degVKH2','degVKO','ka_Brown','d_Brown',...
-    'ka_Warf','Vd_Warf','Cl_Warf','ke_Warf','warf_dose','ka_Hep','Vc_Hep',...
+    'ka_Warf','Vd_Warf','Cl_Warf','ke_Warf','ka_Hep','Vc_Hep',...
     'Vp_Hep','Cl_Hep','Q_Hep','ke_Hep','k12_Hep','k21_Hep','VK_k12','VK_k21','VK_V',...
     'd_Taipan','ktrans_Taipan','ka_Tiger','d_Tiger','inf_rate_UFH','vtaipan','ktaipan'};
 
@@ -93,12 +93,20 @@ for i = 1:I.npar
 end
 
 
-%%% check for overlap between state and parameter names
+%%% check for double naming and overlap between state and parameter names
 %%%
+if I.nstates ~= length(unique(I.nmstate))
+    fprintf('--> There are double named state names---PLEASE FIX!\n\n');
+    error(':-)');
+end
+if I.npar ~= length(unique(I.nmpar))
+    fprintf('--> There are double named parameter names---PLEASE FIX!\n\n');
+    error(':-)');
+end
 if ~isempty(intersect(I.nmstate,I.nmpar))
-    fprintf('--> There is an overlap betwenn state and parameter names :-( Please fix!\n\n');
-    error('--> Ending here');
+    fprintf('--> There is an overlap betwenn state and parameter names---PLEASE FIX!\n\n');
+    error(':-)');
 end
 
-
 end
+

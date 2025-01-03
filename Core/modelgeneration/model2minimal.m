@@ -65,7 +65,9 @@ else
     model.irenv_geom = [];
 end
 if ~isfield(bigmodel, 'irenv_arith') && ~isfield(bigmodel, 'irenv_geom')
-    model = model2irenv(bigmodel);
+    if isfield(bigmodel, 'obs')
+        model = model2irenv(bigmodel);
+    end
 end
 if isfield(bigmodel, 'adjmat')
     model.adjmat = bigmodel.adjmat;
@@ -86,7 +88,7 @@ X_sym = cell2sym(model.I.nmstate(:));
 
 % generate ode matlabfun
 tic
-odefun_symbolic = bigmodel.odefun(t,X_sym,par_sym,model);
+odefun_symbolic = bigmodel.odefun(t,X_sym,par_sym,bigmodel);
 disp(toc)
 % disp(odefun_symbolic)
 tic
@@ -105,7 +107,7 @@ end
 % generate jac matlabfun
 tic
 if jac_present
-    jacfun_symbolic = bigmodel.jacfun(t,X_sym,par_sym,model);
+    jacfun_symbolic = bigmodel.jacfun(t,X_sym,par_sym,bigmodel);
 else
     jacfun_symbolic = sym(zeros(model.I.nstates, model.I.nstates));
     for i = 1:model.I.nstates
@@ -209,7 +211,9 @@ state_unimportant(model.I.output) = 0;
 model.state_unimportant = state_unimportant;
 
 % add constant vectors to I
-model = model2consts(model);
+if isfield(bigmodel, 'obs')
+    model = model2consts(model);
+end
 
 %% re-calculate reference solution
 

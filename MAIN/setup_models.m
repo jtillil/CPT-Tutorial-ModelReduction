@@ -28,6 +28,13 @@ scenario = 'Cpss_EpCenv';
 setupModel(name, namesimple, scenario, config)
 
 %% blood coagulation
+name = 'Wajima2009BloodCoagulation';
+namesimple = 'BC';
+scenario = 'in_vivo_snakevenom_40h';
+
+setupModel(name, namesimple, scenario, config)
+
+%% blood coagulation
 model = struct;
 model.name = 'Gulati2014BloodCoagulation';
 model.namesimple = 'BC_Gulati2014';

@@ -24,6 +24,9 @@ if exist([model.name '_model_set_up_details'], "file") == 2
 end
 model = set_up_the_model(model);
 
+model = model2minimal(model);
+model.ode_is_matlabfun = 1;
+
 %% calculate indices
 
 if config.ir
