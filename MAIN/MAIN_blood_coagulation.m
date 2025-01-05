@@ -12,6 +12,7 @@ model.X0 = Gulati2014BloodCoagulation_initialvalues(model);
 model.multiple.multiple = 0;
 
 idxFg = model.I.Fg;
+idxII = model.I.II;
 idxIIa = model.I.IIa;
 idxAvenom = model.I.AVenom;
 idxPvenom = model.I.CVenom;
@@ -27,11 +28,32 @@ lumpmat_Gulati(5, idxAvenom) = 0;
 lumpmat_Gulati(4, idxPvenom) = 1;
 lumpmat_Gulati(5, idxPvenom) = 0;
 
+% lumpmat_Gulati = zeros(6, model.I.nstates);
+% lumpmat_Gulati(5, :) = 1;
+% lumpmat_Gulati(1, idxFg) = 1;
+% lumpmat_Gulati(5, idxFg) = 0;
+% lumpmat_Gulati(6, idxII) = 1;
+% lumpmat_Gulati(5, idxII) = 0;
+% lumpmat_Gulati(2, idxIIa) = 1;
+% lumpmat_Gulati(5, idxIIa) = 0;
+% lumpmat_Gulati(3, idxAvenom) = 1;
+% lumpmat_Gulati(5, idxAvenom) = 0;
+% lumpmat_Gulati(4, idxPvenom) = 1;
+% lumpmat_Gulati(5, idxPvenom) = 0;
+
 [reduced_errors.lumping_Gulati, X_red] = calculate_lumping_error(model, lumpmat_Gulati);
 
 %% Diagnostics
+I = model.I;
+par = model.par;
 
-disp(model.par(model.I.degIIa))
+disp(par(I.degIIa))
+
+disp(par(I.v14))
+disp(par(I.k14))
+
+disp(par(I.v15))
+disp(par(I.k15))
 
 %% Plots
 
@@ -55,7 +77,6 @@ par_sym = cell2sym(model.I.nmpar(:));
 X_sym = cell2sym(model.I.nmstate(:));
 
 ODE_red = simplify(lumpmat_Gulati*model.odefun(X_sym, par_sym))
-
 
 %% Save results
 save("./results/errors_BC_Gulati2014.mat", "reduced_errors")
