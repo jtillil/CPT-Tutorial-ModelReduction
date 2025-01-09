@@ -7,6 +7,8 @@ reduced_errors = struct;
 % load model file
 load("modelSPP_no_crosstalk_full.mat")
 model.multiple.multiple = 0;
+config = repmat("dyn", [1 model.I.nstates]);
+model.I = config2I(model.I, config, model.L);
 
 % lumping merge both pathways 3 (B), 4 (C)
 lumpmat = zeros(4, 5);
@@ -90,6 +92,8 @@ reduced_errors.B_pss(1,1) = obj.errout;
 % load model file
 load("modelSPP_with_crosstalk_full.mat")
 model.multiple.multiple = 0;
+config = repmat("dyn", [1 model.I.nstates]);
+model.I = config2I(model.I, config, model.L);
 
 % lumping merge both pathways 3 (B), 4 (C)
 lumpmat = zeros(4, 5);

@@ -18,18 +18,22 @@ f_KD=1-((Enox_conc/v2_e)/(KDE+(Enox_conc/v2_e)));
 binding=Bmax*x(2)/(f_KD*KDXa+x(2));
 
 % for anitivenom treatment
-if t>time_of_antivenom
-    antivenom=100;
-else
-    antivenom=1;
-end
+% if t>time_of_antivenom
+%     antivenom=100;
+% else
+%     antivenom=1;
+% end
 
 % for heparin (UFH) infusion
-if t>T_UFH
-    INF_UFH=0;
-else
-    INF_UFH=1;
-end
+% if t>T_UFH
+%     INF_UFH=0;
+% else
+%     INF_UFH=1;
+% end
+
+% FOR SYMBOLIC ODE CALCULATION
+antivenom = 1;
+INF_UFH = 0;
 
     %(1) X
 dxdt=[pX*x(52)-dX*x(1)-vIXa*x(10)*x(1)/(kIXa+x(10))-vIXaVIIIa*x(11)*x(1)/(kIXaVIIIa+x(11))-vX2XaVIIa*x(32)*x(1)/(kX2XaVIIa+x(32))-vX_VIIaTF*x(39)*x(1)/(kX_VIIaTF+x(39))

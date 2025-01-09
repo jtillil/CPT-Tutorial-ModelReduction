@@ -17,10 +17,29 @@
 %%%
 
 % function [tout, Xout, log] = simModel(t, X0, par, model, timeout)
-function [tout, Xout, log, simtime] = simModel(t, X0, par, I, param, multiple, odefun, jacfun)
+function [tout, Xout, log, simtime] = simModel(t, X0, par, I, param, multiple, odefun, jacfun, lumpmat)
 
 % init log
 log = 'Log: ';
+
+% handle lumping
+if exist("lumpmat", "var")
+    if ~isempty(lumpmat)
+        lumping = 1;
+    else
+        lumping = 0;
+    end
+else
+    lumping = 0;
+end
+
+% init lumping matrices
+if lumping
+    invlumpmat = pinv(lumpmat);
+else
+    lumpmat = [];
+    invlumpmat = [];
+end
 
 %% (1) pre-processing for index analysis
 
@@ -76,7 +95,7 @@ if ~isempty(I.cneg)
 end
 
 % add jacobian, if provided
-if ~isempty(jacfun)
+if ~isempty(jacfun) && ~lumping
     options.Jacobian = @(t,X) jacfunModel(X,par,I,jacfun);
 end
 
@@ -108,15 +127,22 @@ for p = 1:length(I.replaceODE)
 
     % set initial value of replaceODE state
     X0(k) = sum(X0(states));
-
 end   
+
+if lumping
+    X0 = lumpmat * X0;
+end
 
 %% (2) specify options
 
 % specify options
 if isempty([I.pss])
     % default, unless changed below
-    options.NonNegative = 1:I.nstates;
+    if ~lumping
+        options.NonNegative = 1:I.nstates;
+    else
+        options.NonNegative = 1:size(lumpmat, 1);
+    end
     
 else
     % DAE solver not able to deal with NonNegative option
@@ -131,10 +157,14 @@ else
     end
     
     % define mass matrix for DAE solver
-    M = eye(I.nstates);
-    M(I.pss,I.pss) = 0;
-    options.Mass = M;
-    options.MassSingular = 'yes';
+    if ~lumping
+        M = eye(I.nstates);
+        M(I.pss,I.pss) = 0;
+        options.Mass = M;
+        options.MassSingular = 'yes';
+    else
+        error('pss states not yet implemented for lumping')
+    end
 end
 
 %% (3) simulate model ODEs
@@ -143,7 +173,7 @@ simtime_start = tic;
 
 if ~multiple.multiple
     % without multiple dosing
-    [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, log);
+    [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
 
 else
     % handling for multiple dosing
@@ -156,14 +186,14 @@ else
     tspan_total = t(:);
     X0_ref = X0(:) + u_ref;
     
-    % [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, log);
+    % [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
     if tspan_total(1) < input_events(1)
         if length(tspan_total)==2
             tspan_local = [tspan_total(1) input_events(1)];
         else
             tspan_local = tspan_total(tspan_total<input_events(1));
         end
-        [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, log);
+        [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
         X0_ref = Xout(end,:)' + u_ref;
     end
     for i = 2:length(input_events)
@@ -175,7 +205,7 @@ else
             else
                 tspan_local = unique([input_events(i-1);tspan_total(tspan_total>=input_events(i-1) & tspan_total<=input_events(i));input_events(i)]);
             end
-            [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, log);
+            [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
             %%% to avoid double timepoints in the time vector in the multiple
             %%% dosing case, the dosing timepoint is kept and the other discarded
             %%% such that in the state vector only the dosing state is included
@@ -208,7 +238,7 @@ else
         else
             tspan_local = tspan_total(tspan_total >= input_events(end));
         end
-        [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, log);
+        [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
         tout = [tout; tout_local];
         Xout = [Xout; Xout_local];
     end
@@ -236,10 +266,18 @@ if ~isnan(tout)
 
         % index of state variable whose ODE is to be replaced
         k = I.replaceODE(p); 
+        if lumping
+            k = find(lumpmat(:, k) ~= 0);
+        end
 
         % indices of remaining states that are part of the replaceODEby
         % states
         remstates = setdiff(I.replaceODEby{p},k);
+        if lumping
+            for i = 1:length(remstates)
+                remstates(i) = find(lumpmat(:, remstates(i)) ~= 0);
+            end
+        end
 
         % back calculated solution of states whose ODE was replaced
         Xout(:,k) = max(0, Xout(:,k) - sum(Xout(:,remstates),2) );
@@ -252,9 +290,13 @@ end
 %% internal helper functions
 
 % odesolver_loop
-function [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, log)
+function [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log)
 if isempty([I.pss])
-    [tout, Xout] = ode15s(@(t,X) odefunModel(X,par,I,odefun), t, X0, options);
+    if ~lumping
+        [tout, Xout] = ode15s(@(t,X) odefunModel(X,par,I,odefun), t, X0, options);
+    else
+        [tout, Xout] = ode15s(@(t,X) lumpmat * odefunModel(invlumpmat * X,par,I,odefun), t, X0, options);
+    end
     log = [log 'non-pss solving successfull; '];
 else
     warning off;

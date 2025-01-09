@@ -1,21 +1,23 @@
-function [error, X_current] = calculate_lumping_error(model, lump_matrix)
+function [error, X_current] = calculate_lumping_error(model, lumpmat)
 %%% take a model and a lumping matrix to calculate the lumping error
 
 par = model.par;
-model.lumping.lumpmat = lump_matrix;
-model.lumping.invlumpmat = pinv(lump_matrix);
-out_state = find(lump_matrix(:, model.I.output) ~= 0);
+% model.lumping.lumpmat = lump_matrix;
+% model.lumping.invlumpmat = pinv(lump_matrix);
+out_state = find(lumpmat(:, model.I.output) ~= 0);
 
-X0_new = lump_matrix * model.X0;
+% X0_new = lumpmat * model.X0;
 
-options = odeset;
-% options.Jacobian = @(t,X) jac_lumping(X, par, model);
-options.AbsTol = 1;
-options.RelTol = 1e-3;
-% options.InitialStep = 1e-2;
-options.NonNegative = 1:size(lump_matrix, 1);
+% options = odeset;
+% % options.Jacobian = @(t,X) jac_lumping(X, par, model);
+% options.AbsTol = 1;
+% options.RelTol = 1e-3;
+% % options.InitialStep = 1e-2;
+% options.NonNegative = 1:size(lumpmat, 1);
 
-[~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),model.t_ref,X0_new,options);
+% [~,X_current] = ode15s(@(t,X) ode_lumping(X,par,model),model.t_ref,X0_new,options);
+[~,X_current] = simModel(model.t_ref, model.X0, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, lumpmat);
+
 try
     error = relativeErrorL2(model.t_ref, model.X_ref(:, model.I.output), X_current(:, out_state));
 catch
