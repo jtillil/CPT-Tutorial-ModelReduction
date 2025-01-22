@@ -88,6 +88,12 @@ config(model.I.B) = "pss";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_pss(1,1) = obj.errout;
 
+% B ssenv
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.B) = "ssenv";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.B_ssenv(1,1) = obj.errout;
+
 %% Scenario 2 - with crosstalk
 % load model file
 load("modelSPP_with_crosstalk_full.mat")
@@ -172,6 +178,12 @@ config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.B) = "pss";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_pss(1,2) = obj.errout;
+
+% B ssenv
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.B) = "ssenv";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.B_ssenv(1,2) = obj.errout;
 
 %% Save results
 save("./results/errors_SPP.mat", "reduced_errors")
