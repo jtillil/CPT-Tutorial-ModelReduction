@@ -1,4 +1,4 @@
-function [error, X_current] = calculate_lumping_error(model, options)
+function [error, X_current] = calculate_scaled_lumping_error(model, options)
 %%% take a model and a lumping matrix to calculate the lumping error
 % options.lumpmat
 % options.invlumpmat

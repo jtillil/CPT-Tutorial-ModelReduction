@@ -17,14 +17,14 @@
 %%%
 
 % function [tout, Xout, log] = simModel(t, X0, par, model, timeout)
-function [tout, Xout, log, simtime] = simModel(t, X0, par, I, param, multiple, odefun, jacfun, lumpmat)
+function [tout, Xout, log, simtime] = simModel(t, X0, par, I, param, multiple, odefun, jacfun, simoptions)
 
 % init log
 log = 'Log: ';
 
 % handle lumping
-if exist("lumpmat", "var")
-    if ~isempty(lumpmat)
+if exist("simoptions", "var")
+    if isfield(simoptions, 'lumpmat')
         lumping = 1;
     else
         lumping = 0;
@@ -35,7 +35,12 @@ end
 
 % init lumping matrices
 if lumping
-    invlumpmat = pinv(lumpmat);
+    lumpmat = simoptions.lumpmat;
+    if ~isfield(simoptions, 'invlumpmat')
+        invlumpmat = pinv(lumpmat);
+    else
+        invlumpmat = simoptions.invlumpmat;
+    end
 else
     lumpmat = [];
     invlumpmat = [];

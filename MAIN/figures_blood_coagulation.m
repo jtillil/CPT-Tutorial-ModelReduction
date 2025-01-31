@@ -1,288 +1,61 @@
 %% Setup
 clear; clc;
 addpath(genpath("../../../CPT-Tutorial-ModelReduction"))
-size = 8;
+size = 12;
 lw = 1;
 lwt = 0.5;
 
-%% Parallel Pathways: Scenario 1 - no crosstalk
-load("modelSPP_no_crosstalk_full.mat")
+%% Blood Coagulation: 40h Wajima 2009
+load("modelBC_SV40_full.mat")
 
 % reference solution
 figure
-semilogy(model.t_ref, model.X_ref, 'LineWidth', lw) %DisplayName', plotnames(i))
-xlim([-0.002 0.052])
-ylim([1e-3 1e4])
-legend('A', 'S', 'B', 'C', 'D', 'Location','northeast')
-xlabel("t [min]")
-ylabel("concentration [nM]")
+grid on
+semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+xlim([-2 42])
+ylim([1e-7 5e4])
+legend(model.analysis.ir.nmstates_above_nindex_threshold, 'Location','southeast')
+xlabel("t [h]")
+ylabel("concentration [g/L]")
 
 set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
 
-exportgraphics(gcf, "./figures/SPP_no_crosstalk_ref_sol.pdf")
+exportgraphics(gcf, "./figures/BC_SV40_ref_sol.pdf")
 
 % nir-indices
 figure
-plot(model.t_ref, model.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+plot(model.t_ref, model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
 yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-0.002 0.052])
+xlim([-0.14 4.15])
 ylim([-0.01 1])
-legend('A', 'S', 'B', 'C', 'D', 'threshold', 'Location','northeast')
-xlabel("t [min]")
+legend([model.analysis.ir.nmstates_above_nindex_threshold; 'threshold'], 'Location','east')
+xlabel("t [h]")
 ylabel("nir-index")
 
 set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
 
-exportgraphics(gcf, "./figures/SPP_no_crosstalk_ir.pdf")
+exportgraphics(gcf, "./figures/BC_SV40_ir.pdf")
 
-% non ir-indices B
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.B), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.B), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.B), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.B), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-0.002 0.052])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-hold off
+% non ir-indices
+for i = 1:length(model.analysis.ir.nmstates_above_nindex_threshold)
+    state = model.analysis.ir.nmstates_above_nindex_threshold{i};
+    idx = model.I.(state);
+    figure
+    hold on
+    semilogy(model.t_ref, model.env.nindex(:, idx), 'LineStyle', '-', 'LineWidth', lw)
+    semilogy(model.t_ref, model.pss.nindex(:, idx), 'LineStyle', '--', 'LineWidth', lw)
+    semilogy(model.t_ref, model.cneg.nindex(:, idx), 'LineStyle', '-', 'LineWidth', lw)
+    semilogy(model.t_ref, model.pneg.nindex(:, idx), 'LineStyle', '--', 'LineWidth', lw)
+    yline(0.1, 'k--', 'LineWidth', lwt)
+    xlim([-0.14 4.15])
+    ylim([5e-4 1e1])
+    set(gca, 'YScale', 'log')
+    legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+    xlabel("t [h]")
+    ylabel("normalised index")
+    hold off
+    
+    set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/SPP_no_crosstalk_non_ir_B.pdf")
-
-% non ir-indices C
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-0.002 0.052])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-% hold off
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/SPP_no_crosstalk_non_ir_C.pdf")
-
-%% Parallel Pathways: Scenario 2 - with crosstalk
-load("modelSPP_with_crosstalk_full.mat")
-
-% reference solution
-figure
-semilogy(model.t_ref, model.X_ref, 'LineWidth', lw) %DisplayName', plotnames(i))
-xlim([-0.002 0.052])
-ylim([1e-3 1e4])
-legend('A', 'S', 'B', 'C', 'D', 'Location','northeast')
-xlabel("t [min]")
-ylabel("concentration [nM]")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/SPP_with_crosstalk_ref_sol.pdf")
-
-% nir-indices
-figure
-plot(model.t_ref, model.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-0.002 0.052])
-ylim([-0.01 1])
-legend('A', 'S', 'B', 'C', 'D', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("nir-index")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/SPP_with_crosstalk_ir.pdf")
-
-% non ir-indices B
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.B), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.B), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.B), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.B), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-0.002 0.052])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-hold off
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/SPP_with_crosstalk_non_ir_B.pdf")
-
-% non ir-indices C
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-0.002 0.052])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-hold off
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/SPP_with_crosstalk_non_ir_C.pdf")
-
-
-%% Enzyme Kinetics: Scenario 1 - Cpss Eenv
-load("modelMMEK_Cpss_Eenv_full.mat")
-
-% reference solution
-figure
-semilogy(model.t_ref, model.X_ref, 'LineWidth', lw) %DisplayName', plotnames(i))
-xlim([-1 31])
-ylim([1e-2 5e3])
-legend('A', 'S', 'E', 'C', 'P', 'Location','northeast')
-xlabel("t [min]")
-ylabel("concentration [nM]")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_ref_sol.pdf")
-
-% nir-indices
-figure
-plot(model.t_ref, model.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-1 31])
-ylim([-0.01 1])
-legend('A', 'S', 'E', 'C', 'P', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("nir-index")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_ir.pdf")
-
-% non ir-indices E
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.E), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.E), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.E), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.E), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-1 31])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-hold off
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_non_ir_E.pdf")
-
-% non ir-indices C
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-1 31])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-hold off
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_non_ir_C.pdf")
-
-%% Enzyme Kinetics: Scenario 2 - Cpss EpCenv
-load("modelMMEK_Cpss_EpCenv_full.mat")
-
-% reference solution
-figure
-semilogy(model.t_ref, model.X_ref, 'LineWidth', lw) %DisplayName', plotnames(i))
-xlim([-1 31])
-ylim([1e-2 5e3])
-legend('A', 'S', 'E', 'C', 'P', 'Location','northeast')
-xlabel("t [min]")
-ylabel("concentration [nM]")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_ref_sol.pdf")
-
-% nir-indices
-figure
-plot(model.t_ref, model.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-1 31])
-ylim([-0.01 1])
-legend('A', 'S', 'E', 'C', 'P', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("nir-index")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_ir.pdf")
-
-% non ir-indices E
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.E), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.E), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.E), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.E), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-1 31])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-hold off
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_non_ir_E.pdf")
-
-% non ir-indices C
-figure
-hold on
-semilogy(model.t_ref, model.env.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pss.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-semilogy(model.t_ref, model.cneg.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
-semilogy(model.t_ref, model.pneg.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
-yline(0.1, 'k--', 'LineWidth', lwt)
-xlim([-1 31])
-ylim([5e-4 1e1])
-set(gca, 'YScale', 'log')
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
-xlabel("t [min]")
-ylabel("normalised index")
-hold off
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_non_ir_C.pdf")
-
+    exportgraphics(gcf, ['./figures/BC_SV40_ir_' state '.pdf'])
+end

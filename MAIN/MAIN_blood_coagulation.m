@@ -14,6 +14,7 @@ X_full = model.X_ref(:, [I.Fg, I.II, I.IIa, I.AVenom, I.CVenom, I.Xa, I.Xa_Va, I
 load("modelBC_temp.mat")
 model.X0 = Gulati2014BloodCoagulation_initialvalues(model);
 model.multiple.multiple = 0;
+model.I = config2I(model.I, repmat("dyn", [1 model.I.nstates]), []);
 
 idxFg = model.I.Fg;
 idxII = model.I.II;
@@ -32,6 +33,8 @@ lumpmat_Gulati(5, idxAvenom) = 0;
 lumpmat_Gulati(4, idxPvenom) = 1;
 lumpmat_Gulati(5, idxPvenom) = 0;
 
+opt.lumpmat = lumpmat_Gulati;
+
 % lumpmat_Gulati = zeros(6, model.I.nstates);
 % lumpmat_Gulati(5, :) = 1;
 % lumpmat_Gulati(1, idxFg) = 1;
@@ -45,7 +48,17 @@ lumpmat_Gulati(5, idxPvenom) = 0;
 % lumpmat_Gulati(4, idxPvenom) = 1;
 % lumpmat_Gulati(5, idxPvenom) = 0;
 
-[reduced_errors.lumping_Gulati, X_red] = calculate_lumping_error(model, lumpmat_Gulati);
+[reduced_errors.lumping_Gulati, X_red] = calculate_lumping_error(model, opt);
+
+AUC = trapz(model.t_ref, model.X_ref, 1);
+opt.invlumpmat = opt.lumpmat';
+for col = 1:size(opt.invlumpmat, 2)
+    opt.invlumpmat(:, col) = (AUC.*opt.invlumpmat(:, col)') ./ (AUC*opt.invlumpmat(:, col));
+end
+[reduced_errors.scaled_lumping_Gulati, X_red] = calculate_lumping_error(model, opt);
+
+% Save results
+save("./results/errors_BC_Gulati2014.mat", "reduced_errors")
 
 %% Diagnostics
 I = model.I;
@@ -246,9 +259,6 @@ load("modelBC_temp.mat")
 model.I = config2I(model.I, repmat("dyn", [1 model.I.nstates]), []);
 [t_ref, X_ref] = simModel(t_red, model.X0, model.par, model.I, [], model.multiple, model.odefun, []);
 relativeErrorL2(t_ref, X_ref(:, model.I.Fg), X_red(:, 5))
-
-%% Save results
-save("./results/errors_BC_Gulati2014.mat", "reduced_errors")
 
 %% Error fun
 function Error=relativeErrorL2(t,X,Y)

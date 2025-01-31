@@ -1,6 +1,6 @@
 %% Setup
 clear; clc;
-addpath(genpath("../../../CPT-Tutorial-ModelReduction"))
+addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 size = 8;
 lw = 1;
 lwt = 0.5;
@@ -46,6 +46,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
@@ -66,6 +67,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
@@ -116,6 +118,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
@@ -136,6 +139,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
@@ -187,6 +191,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
@@ -207,6 +212,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
@@ -257,6 +263,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
@@ -277,6 +284,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
+box on
 legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
