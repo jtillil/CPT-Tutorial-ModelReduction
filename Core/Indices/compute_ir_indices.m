@@ -73,8 +73,8 @@ extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
 
 % solving the extended ODE system to obtain J_u(0,t*), including reshaping
 % the output to obtain Jacobian in matrix form (see above)
-% [~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
-[~,extX_ref]  = ode23s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
+[~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
+% [~,extX_ref]  = ode23s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
 
 % decompose extended state vector into states and Wronski matrix; initial
 % 'e' indicates that X_ref and eX_ref can be expected to differ due to the
@@ -104,8 +104,8 @@ parfor ts = 1:ntstar-1
     % in matrix form (see above) 
     tstarspan  = t_ref(ts:end);
     extX0_tstar = [eX_ref(ts,:)';W0(:)];
-    % [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
-    [t_tstar,extX_tstar]  = ode23s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+    [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+    % [t_tstar,extX_tstar]  = ode23s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
     
     W_tstar = extX_tstar(:,I.nstates+1:end);
     
