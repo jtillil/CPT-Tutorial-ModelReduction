@@ -36,6 +36,7 @@ setupModel(name, namesimple, scenario, config)
 % model = set_up_the_model(model);
 
 model = load("Wajima2009BloodCoagulation_in_vivo_snakevenom_40h_ir_index.mat").model;
+model = model2minimal(model);
 model.ir = load("Wajima2009BloodCoagulation_in_vivo_snakevenom_40h_ir_index.mat").indx;
 model.contr = load("Wajima2009BloodCoagulation_in_vivo_snakevenom_40h_contr_index.mat").indx;
 model.obs = load("Wajima2009BloodCoagulation_in_vivo_snakevenom_40h_obs_index.mat").indx;
@@ -47,6 +48,11 @@ model.threshold = 0.1;
 model.analysis = analyse_all_indices(model);
 
 save("../Core/modelfiles/modelBC_SV40.mat", "model")
+
+model.threshold = 0.01;
+model.analysis = analyse_all_indices(model);
+
+save("../Core/modelfiles/modelBC_SV40_t0_01.mat", "model")
 
 %% blood coagulation
 % model = struct;

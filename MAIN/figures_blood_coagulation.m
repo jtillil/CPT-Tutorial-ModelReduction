@@ -36,6 +36,8 @@ set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width
 
 exportgraphics(gcf, "./figures/BC_SV40_ir.pdf")
 
+load("modelBC_SV40_t0_01.mat")
+
 % non ir-indices
 for i = 1:length(model.analysis.ir.nmstates_above_nindex_threshold)
     state = model.analysis.ir.nmstates_above_nindex_threshold{i};

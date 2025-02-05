@@ -3,6 +3,83 @@ clear; clc;
 addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 reduced_errors = struct;
 
+%% Reduce model index analysis
+
+% load model
+load("modelBC_SV40.mat")
+
+% initialize config and threshold
+config = repmat("dyn", [1, model.I.nstates]);
+t = 0.0683;
+
+% assign config based on index analysis results
+for i = 1:model.I.nstates
+neg = 0;
+ir = max(model.ir.nindex(:, i));
+env = max(model.env.nindex(:, i));
+envrel = max(model.env.relstateerr(:, i));
+pss = max(model.pss.nindex(:, i));
+pssrel = max(model.pss.relstateerr(:, i));
+cneg = max(model.cneg.nindex(:, i));
+pneg = max(model.pneg.nindex(:, i));
+if ir <  t
+if env < t || pss < t
+    if env <= pss && envrel < t
+        config(i) = "env";
+    elseif env <= pss && pss < t && pssrel < t
+        config(i) = "pss";
+    elseif pss <= env && pssrel < t
+        config(i) = "pss";
+    elseif pss <= env && env < t && envrel < t
+        config(i) = "env";
+    else
+        neg = 1;
+    end
+else
+    neg = 1;
+end
+if neg == 1
+    if cneg < t || pneg < t
+        if pneg <= cneg
+            config(i) = "pneg";
+        elseif cneg <= pneg
+            config(i) = "cneg";
+        end
+    end
+end
+end
+end
+
+% calculate error
+multiple.multiple = 0;
+[err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
+
+% show results
+disp(err_index.errout)
+disp(sum(config == "dyn"))
+disp(sum(config == "env"))
+disp(sum(config == "pss"))
+disp(sum(config == "pneg"))
+disp(sum(config == "cneg"))
+
+%% save reduced solution plot
+size = 12;
+lw = 1;
+lwt = 0.5;
+
+figure
+grid on
+semilogy(tred, Xred(:, model.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+xlim([-2 42])
+ylim([1e-7 5e4])
+legend(model.analysis.ir.nmstates_above_nindex_threshold, 'Location','southeast')
+xlabel("t [h]")
+ylabel("concentration [g/L]")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_ref_sol_indices.pdf")
+
 %% Full model relevant states
 
 X_full = model.X_ref(:, [I.Fg, I.II, I.IIa, I.AVenom, I.CVenom, I.Xa, I.Xa_Va, I.Tmod, I.AT_III_Heparin, I.TaipanVenom, I.CVenom_Tiger]);
