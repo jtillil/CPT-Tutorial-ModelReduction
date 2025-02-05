@@ -75,9 +75,15 @@ if isfield(bigmodel, 'adjmat')
     model.substratemask = bigmodel.substratemask;
 end
 
-%% special old notation fields
+%% special fields for backwards compatibility
 if isfield(bigmodel, 'input')
     model.input = bigmodel.input;
+end
+if isfield(bigmodel, 'simODE')
+    model.simODE = bigmodel.simODE;
+end
+if isfield(bigmodel, 'relerrnorm')
+    model.relerrnorm = bigmodel.relerrnorm;
 end
 
 %% generate matlab functions 

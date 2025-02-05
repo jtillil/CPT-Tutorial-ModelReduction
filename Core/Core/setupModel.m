@@ -22,10 +22,8 @@ model.savenameroot = ['./results/' namesimple];
 if exist([model.name '_model_set_up_details'], "file") == 2
     model = feval([model.name '_model_set_up_details'],model);
 end
+model.ode_is_matlabfun = 0;
 model = set_up_the_model(model);
-
-model = model2minimal(model);
-model.ode_is_matlabfun = 1;
 
 %% calculate indices
 
@@ -51,6 +49,7 @@ end
 
 %% add relevant components
 model = model2minimal(model);
+model.ode_is_matlabfun = 1;
 
 %% save model
 

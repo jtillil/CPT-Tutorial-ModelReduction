@@ -27,6 +27,13 @@ scenario = 'Cpss_EpCenv';
 
 setupModel(name, namesimple, scenario, config)
 
+%% blood coagulation
+name = 'Wajima2009BloodCoagulation';
+namesimple = 'BC';
+scenario = 'in_vivo_snakevenom_40h';
+
+setupModel(name, namesimple, scenario, config)
+
 %% blood coagulation: snake venom 40h (Wajima 2009)
 % model = struct;
 % model.name = 'Wajima2009BloodCoagulation';

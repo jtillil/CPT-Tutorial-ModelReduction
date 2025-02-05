@@ -106,7 +106,8 @@ model.setup.conlaw.n = 0;
 % optional: jacobian of ODE and jacobian pattern of extended ODE 
 % false = no jacobian provided 
 % true = jacobian provided 
-model.setup.jacfunprovided = true;
+model.setup.jacfunprovided = false;
+% model.setup.jacfunprovided = true;
 
 % optional: define your specific legend labels (if false, default values are used)
 % use the file 'default_legendlabels.m' in the folder 'generalfiles' as a

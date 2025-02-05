@@ -322,7 +322,11 @@ end
 
 % jacobian, if provided
 if ~isempty(model.jacfun)
-    options.Jacobian = @(t,X) model.jacfun(t,X,par,model);
+    if model.ode_is_matlabfun
+        options.Jacobian = @(t,X) model.jacfun(X,par);
+    else
+        options.Jacobian = @(t,X) model.jacfun(t,X,par,model);
+    end
 end
 
 % check consistency of of states that are part of I.replaceODE
@@ -361,7 +365,11 @@ if isempty([I.pss])
     
     % default, unless changed below
     options.NonNegative = 1:I.nstates;
-    [t,X] = ode15s(@(t,X) model.odefun(t,X,par,model), tspan, X0, options);
+    if model.ode_is_matlabfun
+        [t,X] = ode15s(@(t,X) model.odefun(X,par), tspan, X0, options);
+    else
+        [t,X] = ode15s(@(t,X) model.odefun(t,X,par,model), tspan, X0, options);
+    end
     
 else
     
@@ -385,10 +393,18 @@ else
     for X0_init = [1e2 1e4 1 1e-10] % try different initial cond for pss state, in case DAE solver has problems
         
         X0(I.pss) = X0_init;
-        options.InitialSlope = model.odefun(tspan(1),X0,model.par,model);     
+        if model.ode_is_matlabfun
+            options.InitialSlope = model.odefun(X0,model.par);
+        else
+            options.InitialSlope = model.odefun(tspan(1),X0,model.par,model);
+        end
         try    
             lastwarn(''); % clear last warning message
-            [t,X] = ode15s(@(t,X) model.odefun(t,X,par,model), tspan, X0, options);
+            if model.ode_is_matlabfun
+                [t,X] = ode15s(@(t,X) model.odefun(X,par), tspan, X0, options);
+            else
+                [t,X] = ode15s(@(t,X) model.odefun(t,X,par,model), tspan, X0, options);
+            end
             if isempty(lastwarn)
                 break; % everything is fine --> exit for X0_init = ... loop
             else
