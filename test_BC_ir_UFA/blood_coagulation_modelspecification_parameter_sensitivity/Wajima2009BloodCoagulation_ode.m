@@ -1,8 +1,8 @@
-%%% Version: 12 Jul 2023
+%%% Version: February 09th, 2020
 %%%
-%%% dX  = <MODELNAME>_ode(t,X,par,model)
+%%% dX  = Wajima2009BloodCoagulation_ode(t,X,par,model)
 %%%
-%%% This function defines the system of model ODEs 
+%%% This function defines the ode system of the  blood coagulation model
 %%% 
 %%% Input : t           time
 %%%         X           state vector
@@ -25,21 +25,51 @@
 %%%
 %%% NOTE: The action of brown snake venom was assumed to be identical to the human
 %%% prothrombinase complex (Xa:Va) based on their structural similarity
-%%%
+%%% 
 %%% Author: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function dX = Wajima2009BloodCoagulation_ode(~,X,par,model)
+function dX = Wajima2009BloodCoagulation_ode_numqss(t,X,par,model)
 
 %%% assign model indexing
 I  = model.I;
+par=X;
 
-%%% initialize rhs vector
-dX = zeros(size(X));
+%%% -----------------------------------------------------------------------
+%%% account for state variable (in I.con) that are eliminated 
+%%% via a conservation law 
+%%%
+
+% determine value of states eliminated via conservation laws
+for p = 1:length(I.con)
+        
+    L = model.L;
+    % determine value of the state in I.con by subtracting the sum of the
+    % current values of the remaining (rem) states of the conlaw. Note:
+    % States in I.con are not in the same order as the conservation laws
+    % have been specifed (but in some permuted (p) order).
+    
+    k = I.con(p);  % index of state variable
+    c = L.con2conlaw(p); % number of conservation law
+
+    % determine value of state using the corresponding conlaw. If resulting
+    % value is ''too negative'' (it should minimally be zero) or 'too large'
+    % (it should maximally be 'valconlaw'), then skip solving
+    % the ODE and report '(error)' for the kth state. Otherwise, ensure
+    % that value is non-negative
+    X(k) = L.valconlaw(c) - sum( X(L.remstatesofconlaw{p}) );
+    conlowTOL = min( L.valconlaw(c)*0.01, 1e-3 ); % rel 1% or abs 1e-3
+    if ( -conlowTOL < X(k) ) && ( X(k) < L.valconlaw(c) + conlowTOL )
+        X(k) = max(0,X(k));
+    else
+        return;
+    end
+     
+end
 
 %%% -----------------------------------------------------------------------
 %%% specify system of ODEs 
-
+%dX = zeros(size(X));
 %%% NOTE: The action of brown snake venom was assumed to be identical to the human
 %%% prothrombinase complex (Xa:Va) based on their structural similarity
 %%% states: XII, XIIa
@@ -346,7 +376,26 @@ dX(I.CVenom_Tiger)  =  par(I.ka_Tiger)*X(I.AVenom_Tiger) -par(I.d_Tiger)*X(I.CVe
 dX(I.AT_III_UFH) = par(I.ke_Hep)*X(I.AT_III_UFH)-r44-r45-r46+par(I.inf_rate_UFH);
 
 %%% -----------------------------------------------------------------------
+%dX(I.PT) = (X(I.AUC)>1500/3600);
 
+%smoothstep = @(x) (x>0)*(x<1)*(3*x^2-2*x^3)+(x>=1);
+%dX(I.PT) = smoothstep(18*(X(I.AUC)-1400/3600));
+
+%dsmoothstep5= @(x) (x>0)*(x<1)*30*(x-1)^2*x^2;
+%dX(I.PT) = -dsmoothstep5(3*(X(I.AUC)-900/3600))*2000;
+
+% II_lump  =  par(I.aII)*X(I.VKH2)-par(I.degII)*X(I.lump)*model.X0(I.II);
+% VII_lump  = par(I.aVII)*X(I.VKH2)-par(I.degVII)*X(I.lump)*model.X0(I.VII);
+% X_lump  = par(I.aX)*X(I.VKH2)-par(I.degX)*X(I.lump)*model.X0(I.X);
+dX(I.lump) = 0;%X(I.VII)*X(I.X)*II_lump+X(I.II)*X(I.X)*VII_lump+X(I.II)*X(I.VII)*X_lump;
+
+
+%%% set derivative of environmental, negligible and conservation law 
+%%% state variables to zero
+%%%
+%%%------------------------------------------------
+dX(end+1:I.nstates)=0;
+dX(I.env) = 0; dX(I.neg) = 0; 
+dX=dX(:);
 
 end
-

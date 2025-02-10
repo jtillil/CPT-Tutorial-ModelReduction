@@ -107,6 +107,7 @@ model.setup.conlaw.n = 0;
 % false = no jacobian provided 
 % true = jacobian provided 
 model.setup.jacfunprovided = true;
+% model.setup.jacfunprovided = false;
 
 % optional: define your specific legend labels (if false, default values are used)
 % use the file 'default_legendlabels.m' in the folder 'generalfiles' as a
