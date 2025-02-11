@@ -29,7 +29,7 @@
 %%% Author: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function dX = Wajima2009BloodCoagulation_ode(~,X,par,model)
+function dX = Wajima2009BloodCoagulation_ode_numqss(t,X,par,model)
 
 %%% assign model indexing
 I  = model.I;
@@ -38,14 +38,6 @@ I  = model.I;
 %%% account for state variable (in I.con) that are eliminated 
 %%% via a conservation law 
 %%%
-
-%X(I.neg)=0;
-if isfield(model,'qssfun')
-    %X(I.qss)=arrayfun(@(i) model.qssfun.(join(["X",i],""))(X),I.qss);
-    for i = I.qss
-        X(i) = model.qssfun.(model.I.nmstate{i})(X);
-    end
-end
 
 % determine value of states eliminated via conservation laws
 for p = 1:length(I.con)
@@ -402,7 +394,7 @@ dX(I.lump) = 0;%X(I.VII)*X(I.X)*II_lump+X(I.II)*X(I.X)*VII_lump+X(I.II)*X(I.VII)
 %%%
 %%%------------------------------------------------
 
-dX(I.env) = 0; dX(I.neg) = 0; dX(I.qss) = 0; 
+dX(I.env) = 0; dX(I.neg) = 0; 
 dX=dX(:);
 
 end

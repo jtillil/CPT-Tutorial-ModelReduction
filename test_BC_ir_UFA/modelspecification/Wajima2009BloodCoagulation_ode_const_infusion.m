@@ -1,8 +1,8 @@
-%%% Version: 12 Jul 2023
+%%% Version: February 09th, 2020
 %%%
-%%% dX  = <MODELNAME>_ode(t,X,par,model)
+%%% dX  = Wajima2009BloodCoagulation_ode(t,X,par,model)
 %%%
-%%% This function defines the system of model ODEs 
+%%% This function defines the ode system of the  blood coagulation model
 %%% 
 %%% Input : t           time
 %%%         X           state vector
@@ -25,21 +25,57 @@
 %%%
 %%% NOTE: The action of brown snake venom was assumed to be identical to the human
 %%% prothrombinase complex (Xa:Va) based on their structural similarity
-%%%
+%%% 
 %%% Author: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function dX = Wajima2009BloodCoagulation_ode_Gulati_compatibility(~,X,par,model)
+function dX = Wajima2009BloodCoagulation_ode_const_infusion(t,X,par,model)
 
 %%% assign model indexing
 I  = model.I;
 
-%%% initialize rhs vector
-dX = 0*X;
+if isfield(model,'qssfun')
+    %X(I.qss)=arrayfun(@(i) model.qssfun.(join(["X",i],""))(X),I.qss);
+    for i = I.qss
+        X(i) = model.qssfun.(model.I.nmstate{i})(X);
+    end
+end
+
+%%% -----------------------------------------------------------------------
+%%% account for state variable (in I.con) that are eliminated 
+%%% via a conservation law 
+%%%
+
+% determine value of states eliminated via conservation laws
+for p = 1:length(I.con)
+        
+    L = model.L;
+    % determine value of the state in I.con by subtracting the sum of the
+    % current values of the remaining (rem) states of the conlaw. Note:
+    % States in I.con are not in the same order as the conservation laws
+    % have been specifed (but in some permuted (p) order).
+    
+    k = I.con(p);  % index of state variable
+    c = L.con2conlaw(p); % number of conservation law
+
+    % determine value of state using the corresponding conlaw. If resulting
+    % value is ''too negative'' (it should minimally be zero) or 'too large'
+    % (it should maximally be 'valconlaw'), then skip solving
+    % the ODE and report '(error)' for the kth state. Otherwise, ensure
+    % that value is non-negative
+    X(k) = L.valconlaw(c) - sum( X(L.remstatesofconlaw{p}) );
+    conlowTOL = min( L.valconlaw(c)*0.01, 1e-3 ); % rel 1% or abs 1e-3
+    if ( -conlowTOL < X(k) ) && ( X(k) < L.valconlaw(c) + conlowTOL )
+        X(k) = max(0,X(k));
+    else
+        return;
+    end
+     
+end
 
 %%% -----------------------------------------------------------------------
 %%% specify system of ODEs 
-
+%dX = zeros(size(X));
 %%% NOTE: The action of brown snake venom was assumed to be identical to the human
 %%% prothrombinase complex (Xa:Va) based on their structural similarity
 %%% states: XII, XIIa
@@ -139,19 +175,12 @@ dX(I.Xa_Va) = r27-r25-par(I.degXaVa)*X(I.Xa_Va);
 %%% -----------------------------------------------------------------------
 %%% eqs. 16 and 17 : Prothrombin (II) and activation
 %%%
-% r12 =  (par(I.v12)*(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) / ...
-%           (par(I.k12)+(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) * X(I.II);
-% r12 =  (par(I.v12)*(X(I.Xa_Va) + X(I.CVenom))) / ...
-%           (par(I.k12)+(X(I.CVenom) + X(I.Xa_Va))) * X(I.II);
-r12 =  (par(I.v12)*(X(I.CVenom))) / ...
-          (par(I.k12)+(X(I.CVenom))) * X(I.II);
-% r13 = (par(I.v13)*(X(I.Xa)+X(I.CVenom_Tiger)))/...
-%           (par(I.k13)+(X(I.Xa)+X(I.CVenom_Tiger))) * X(I.II);
-r13 = 0;
-% r28 = (X(I.IIa)*X(I.Tmod))/(par(I.c28));
-% r44 = (X(I.IIa)*(X(I.AT_III_Heparin)))/par(I.c44);
-r28 = 0;
-r44 = 0;
+r12 =  (par(I.v12)*(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) / ...
+          (par(I.k12)+(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) * X(I.II);
+r13 = (par(I.v13)*(X(I.Xa)+X(I.CVenom_Tiger)))/...
+          (par(I.k13)+(X(I.Xa)+X(I.CVenom_Tiger))) * X(I.II);
+r28 = (X(I.IIa)*X(I.Tmod))/(par(I.c28));
+r44 = (X(I.IIa)*(X(I.AT_III_Heparin)))/par(I.c44);
 pII = par(I.aII)*X(I.VKH2);
 
 dX(I.II)  = pII-r12-r13-par(I.degII)*X(I.II);
@@ -289,9 +318,12 @@ dX(I.VK_p) = par(I.VK_k12)*X(I.VK)*par(I.VK_V)-par(I.VK_k21)*X(I.VK_p);
 %%% -----------------------------------------------------------------------
 %%% eqs. 47,48 : Warfarin PK (oral)
 %%%
+% constant infusion rate of Warfarin
+% C_ss   = 0.85; % in [mg/l] average concentration q.d. 4mg in steady state
+r_Warf = 0.0170; % C_ss*par(I.ke_Warf);
 
 dX(I.Awarf)=-par(I.ka_Warf)*X(I.Awarf);
-dX(I.Cwarf)=par(I.ka_Warf)*(X(I.Awarf)/par(I.Vd_Warf))-par(I.ke_Warf)*X(I.Cwarf);
+dX(I.Cwarf)=par(I.ka_Warf)*(X(I.Awarf)/par(I.Vd_Warf))-par(I.ke_Warf)*X(I.Cwarf)+r_Warf;
 
 %%% -----------------------------------------------------------------------
 %%% eq. 49 :activator for the contact system (CA)
@@ -312,7 +344,7 @@ dX(I.ENO_p)             = par(I.k12_Hep)*X(I.AT_III_Heparin)*par(I.Vc_Hep)-par(I
    
 
 %%% -----------------------------------------------------------------------
-%%% eqs. 53 : AUC of fibrin concentration 
+%%% eqs. 53 : AUC of fibrin concentration
 %%%
 
 dX(I.AUC) = X(I.F);
@@ -354,6 +386,45 @@ dX(I.AT_III_UFH) = par(I.ke_Hep)*X(I.AT_III_UFH)-r44-r45-r46+par(I.inf_rate_UFH)
 
 %%% -----------------------------------------------------------------------
 
+%zu schnell
+II_lump  =  par(I.aII)*X(I.VKH2)/model.X0(I.II)-par(I.degII)*X(I.lump);
+%VII_lump  = par(I.aVII)*X(I.VKH2)/model.X0(I.VII)-par(I.degVII)*X(I.lump);
+X_lump  = par(I.aX)*X(I.VKH2)/model.X0(I.X)-par(I.degX)*X(I.lump);
+%dX(I.lump) = (II_lump+VII_lump+X_lump)/3;
+
+%auch sehr gut
+dX(I.lump) = (II_lump+X_lump)/2;
+
+
+
+%zu schnell
+% II_lump  =  par(I.aII)*X(I.VKH2)/model.X0(I.II)-par(I.degII)*X(I.lump)^(1/3);
+% VII_lump  = par(I.aVII)*X(I.VKH2)/model.X0(I.VII)-par(I.degVII)*X(I.lump)^(1/3);
+% X_lump  = par(I.aX)*X(I.VKH2)/model.X0(I.X)-par(I.degX)*X(I.lump)^(1/3);
+% dX(I.lump) = (X(I.VII)/model.X0(I.VII)*X(I.X)/model.X0(I.X)*II_lump+X(I.II)/model.X0(I.II)*X(I.X)/model.X0(I.X)*VII_lump+X(I.II)/model.X0(I.II)*X(I.VII)/model.X0(I.VII)*X_lump);
+
+%klappt nicht, auch nach 1h keine Lösung
+% II_lump  =  par(I.aII)*X(I.VKH2)/model.X0(I.II)-par(I.degII)*X(I.lump);
+% VII_lump  = par(I.aVII)*X(I.VKH2)/model.X0(I.VII)-par(I.degVII)*X(I.lump);
+% X_lump  = par(I.aX)*X(I.VKH2)/model.X0(I.X)-par(I.degX)*X(I.lump);
+% dX(I.lump) = nthroot(X(I.VII)/model.X0(I.VII)*X(I.X)/model.X0(I.X)*II_lump+X(I.II)/model.X0(I.II)*X(I.X)/model.X0(I.X)*VII_lump+X(I.II)/model.X0(I.II)*X(I.VII)/model.X0(I.VII)*X_lump,3);
+
+%besser
+% II_lump  =  par(I.aII)*X(I.VKH2)/model.X0(I.II)-par(I.degII)*X(I.lump);
+% VII_lump  = par(I.aVII)*X(I.VKH2)/model.X0(I.VII)-par(I.degVII)*X(I.lump);
+% X_lump  = par(I.aX)*X(I.VKH2)/model.X0(I.X)-par(I.degX)*X(I.lump);
+% dX(I.lump) = nthroot(II_lump*VII_lump*X_lump,3);
+
+% am besten (vorzeichen begründen!)
+% II_lump  =  par(I.aII)*X(I.VKH2)/model.X0(I.II)-par(I.degII)*X(I.lump);
+% X_lump  = par(I.aX)*X(I.VKH2)/model.X0(I.X)-par(I.degX)*X(I.lump);
+% dX(I.lump) = -nthroot(II_lump*X_lump,2);
+
+%%% set derivative of environmental, negligible and conservation law 
+%%% state variables to zero
+%%%
+
+dX(I.env) = 0; dX(I.neg) = 0;  dX(I.qss) = 0; 
+dX=dX(:);
 
 end
-

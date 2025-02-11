@@ -29,7 +29,7 @@
 %%% Author: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function dX = Wajima2009BloodCoagulation_ode(~,X,par,model)
+function dX = Wajima2009BloodCoagulation_ode(t,X,par,model)
 
 %%% assign model indexing
 I  = model.I;
@@ -38,14 +38,6 @@ I  = model.I;
 %%% account for state variable (in I.con) that are eliminated 
 %%% via a conservation law 
 %%%
-
-%X(I.neg)=0;
-if isfield(model,'qssfun')
-    %X(I.qss)=arrayfun(@(i) model.qssfun.(join(["X",i],""))(X),I.qss);
-    for i = I.qss
-        X(i) = model.qssfun.(model.I.nmstate{i})(X);
-    end
-end
 
 % determine value of states eliminated via conservation laws
 for p = 1:length(I.con)
@@ -66,7 +58,7 @@ for p = 1:length(I.con)
     % that value is non-negative
     X(k) = L.valconlaw(c) - sum( X(L.remstatesofconlaw{p}) );
     conlowTOL = min( L.valconlaw(c)*0.01, 1e-3 ); % rel 1% or abs 1e-3
-    if ( -conlowTOL < X(k) ) && ( X(k) < L.valconlaw(c) + conlowTOL )
+    if -conlowTOL < X(k) < L.valconlaw(c) + conlowTOL
         X(k) = max(0,X(k));
     else
         return;
@@ -76,7 +68,7 @@ end
 
 %%% -----------------------------------------------------------------------
 %%% specify system of ODEs 
-%dX = zeros(size(X));
+dX = zeros(size(X));
 %%% NOTE: The action of brown snake venom was assumed to be identical to the human
 %%% prothrombinase complex (Xa:Va) based on their structural similarity
 %%% states: XII, XIIa
@@ -319,9 +311,12 @@ dX(I.VK_p) = par(I.VK_k12)*X(I.VK)*par(I.VK_V)-par(I.VK_k21)*X(I.VK_p);
 %%% -----------------------------------------------------------------------
 %%% eqs. 47,48 : Warfarin PK (oral)
 %%%
+% constant infusion rate of Warfarin
+% C_ss   = 0.85; % in [mg/l] average concentration q.d. 4mg in steady state
+r_Warf = 0.0170/6; % C_ss*par(I.ke_Warf);
 
 dX(I.Awarf)=-par(I.ka_Warf)*X(I.Awarf);
-dX(I.Cwarf)=par(I.ka_Warf)*(X(I.Awarf)/par(I.Vd_Warf))-par(I.ke_Warf)*X(I.Cwarf);
+dX(I.Cwarf)=par(I.ka_Warf)*(X(I.Awarf)/par(I.Vd_Warf))-par(I.ke_Warf)*X(I.Cwarf)+r_Warf;
 
 %%% -----------------------------------------------------------------------
 %%% eq. 49 :activator for the contact system (CA)
@@ -342,7 +337,7 @@ dX(I.ENO_p)             = par(I.k12_Hep)*X(I.AT_III_Heparin)*par(I.Vc_Hep)-par(I
    
 
 %%% -----------------------------------------------------------------------
-%%% eqs. 53 : AUC of fibrin concentration 
+%%% eqs. 53 : AUC of fibrin concentration
 %%%
 
 dX(I.AUC) = X(I.F);
@@ -383,26 +378,12 @@ dX(I.CVenom_Tiger)  =  par(I.ka_Tiger)*X(I.AVenom_Tiger) -par(I.d_Tiger)*X(I.CVe
 dX(I.AT_III_UFH) = par(I.ke_Hep)*X(I.AT_III_UFH)-r44-r45-r46+par(I.inf_rate_UFH);
 
 %%% -----------------------------------------------------------------------
-%dX(I.PT) = (X(I.AUC)>1500/3600);
-
-%smoothstep = @(x) (x>0)*(x<1)*(3*x^2-2*x^3)+(x>=1);
-%dX(I.PT) = smoothstep(18*(X(I.AUC)-1400/3600));
-
-%dsmoothstep5= @(x) (x>0)*(x<1)*30*(x-1)^2*x^2;
-%dX(I.PT) = -dsmoothstep5(3*(X(I.AUC)-900/3600))*2000;
-
-% II_lump  =  par(I.aII)*X(I.VKH2)-par(I.degII)*X(I.lump)*model.X0(I.II);
-% VII_lump  = par(I.aVII)*X(I.VKH2)-par(I.degVII)*X(I.lump)*model.X0(I.VII);
-% X_lump  = par(I.aX)*X(I.VKH2)-par(I.degX)*X(I.lump)*model.X0(I.X);
-dX(I.lump) = 0;%X(I.VII)*X(I.X)*II_lump+X(I.II)*X(I.X)*VII_lump+X(I.II)*X(I.VII)*X_lump;
-
 
 %%% set derivative of environmental, negligible and conservation law 
 %%% state variables to zero
 %%%
-%%%------------------------------------------------
 
-dX(I.env) = 0; dX(I.neg) = 0; dX(I.qss) = 0; 
-dX=dX(:);
+dX(I.env) = 0; dX(I.neg) = 0; 
+
 
 end

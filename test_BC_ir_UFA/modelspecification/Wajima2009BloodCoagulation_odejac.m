@@ -1,8 +1,9 @@
-%%% Version: 12 Jul 2023
+%%% Version: January 20th, 2020
 %%%
-%%% jac  = <MODELNAME>_odejac(t,X,par,model)
+%%% jac  = Wajima2009BloodCoagulation_odejac(t,X,par,model)
 %%%
-%%% This function defines the jacobian of the ode system 
+%%% This function defines the jacobian of the ode system of the 
+%%% blod coagulation system
 %%%
 %%% Input   t           time
 %%%         X           state vector
@@ -11,23 +12,49 @@
 %%%                     the model
 %%%                   
 %%%
-%%% Output  jac         Jacobian of the right hand side with respect to  
+%%% Output  jac         Jacobian of the right hand side with respect to 
 %%%                     the state variables
+%%%
+%%%
 %%%
 %%% Authors: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function DF = Wajima2009BloodCoagulation_odejac(~,X,par,model)
+function jac = Wajima2009BloodCoagulation_odejac(t,X,par,model)
 
-%%% assign model indexing
 I  = model.I;
+
+% determine value of states eliminated via conservation laws
+for p = 1:length(I.con)
+        
+    L = model.L;
+    % determine value of the state in I.con by subtracting the sum of the
+    % current values of the remaining (rem) states of the conlaw. Note:
+    % States in I.con are not in the same order as the conservation laws
+    % have been specifed (but in some permuted (p) order).
+    
+    k = I.con(p);  % index of state variable
+    c = L.con2conlaw(p); % number of conservation law
+
+    % determine value of state using the corresponding conlaw. If resulting
+    % value is ''too negative'' (it should minimally be zero) or 'too large'
+    % (it should maximally be 'valconlaw'), then skip solving
+    % the ODE and report '(error)' for the kth state. Otherwise, ensure
+    % that value is non-negative
+    X(k) = L.valconlaw(c) - sum( X(L.remstatesofconlaw{p}) );
+    conlowTOL = min( L.valconlaw(c)*0.01, 1e-3 ); % rel 1% or abs 1e-3
+    if -conlowTOL < X(k) < L.valconlaw(c) + conlowTOL
+        X(k) = max(0,X(k));
+    else
+        return;
+    end
+     
+end
 
 %%% initialize the jacobian
 DF  = spalloc(I.nstates,I.nstates,3*I.nstates);
 
-%%% -----------------------------------------------------------------------
 %%% define jacobian
-
 %%% -----------------------------------------------------------------------
 %%% states: XII, XIIa
 %%% eqs. 1 and 2: Hageman- Factor (XII) and activation
@@ -92,23 +119,21 @@ DF(I.VII,I.VII)      = -(X(I.TF))/(par(I.c30))-(par(I.v6)*X(I.IIa))/(par(I.k6)+X
                         -(par(I.v39)*X(I.VIIa_TF))/(par(I.k39)+X(I.VIIa_TF))...
                         -(par(I.v40)*X(I.IXa))/(par(I.k40)+X(I.IXa))-par(I.degVII);
 DF(I.VII,I.TF)       = -(X(I.VII))/(par(I.c30));
-DF(I.VII,I.IIa)      = -(par(I.v6)*par(I.k6))/(par(I.k6)+X(I.IIa))^2*X(I.VII);
-DF(I.VII,I.Xa)       = -(par(I.v38)*par(I.k38))/(par(I.k38)+X(I.Xa))^2*X(I.VII);
-DF(I.VII,I.VIIa_TF)  = -(par(I.v39)*par(I.k39))/(par(I.k39)+X(I.VIIa_TF))^2*X(I.VII);
-DF(I.VII,I.IXa)      = -(par(I.v40)*par(I.k40))/(par(I.k40)+X(I.IXa))^2*X(I.VII);
+DF(I.VII,I.IIa)      = -(par(I.v6))/((1+X(I.IIa)/par(I.k6))^2*par(I.k6))*X(I.VII);
+DF(I.VII,I.Xa)       = -(par(I.v38))/((1+X(I.Xa)/par(I.k38))^2*par(I.k38))*X(I.VII);
+DF(I.VII,I.VIIa_TF)  = -(par(I.v39))/((1+X(I.VIIa_TF)/par(I.k39))^2*par(I.k39))*X(I.VII);
+DF(I.VII,I.IXa)      = -(par(I.v40))/((1+X(I.IXa)/par(I.k40))^2*par(I.k40))*X(I.VII);
 DF(I.VII,I.VKH2)     = par(I.aVII);
-DF(I.VII,I.delayTaipan2) = - ( par(I.vtaipan)*(par(I.ktaipan)+X(I.delayTaipan2)) - par(I.vtaipan)*X(I.delayTaipan2)  ) / ... 
-                            (par(I.ktaipan)+X(I.delayTaipan2))^2 * X(I.VII); %%% added 14 Sep 2021
 
 DF(I.VIIa,I.VII)     = (par(I.v6)*X(I.IIa))/(par(I.k6)+X(I.IIa))...
                         +(par(I.v38)*X(I.Xa))/(par(I.k38)+X(I.Xa))...
                         +(par(I.v39)*X(I.VIIa_TF))/(par(I.k39)+X(I.VIIa_TF))...
                         +(par(I.v40)*X(I.IXa))/(par(I.k40)+X(I.IXa));
 DF(I.VIIa,I.TF)      = -(X(I.VIIa))/(par(I.c29));
-DF(I.VIIa,I.IIa)     = (par(I.v6)*par(I.k6))/(par(I.k6)+X(I.IIa))^2*X(I.VII);
-DF(I.VIIa,I.Xa)      = (par(I.v38)*par(I.k38))/(par(I.k38)+X(I.Xa))^2*X(I.VII);
-DF(I.VIIa,I.VIIa_TF) = (par(I.v39)*par(I.k39))/(par(I.k39)+X(I.VIIa_TF))^2*X(I.VII);
-DF(I.VIIa,I.IXa)     = (par(I.v40)*par(I.k40))/(par(I.k40)+X(I.IXa))^2*X(I.VII);
+DF(I.VIIa,I.IIa)     = (par(I.v6))/((1+X(I.IIa)/par(I.k6))^2*par(I.k6))*X(I.VII);
+DF(I.VIIa,I.Xa)      = (par(I.v38))/((1+X(I.Xa)/par(I.k38))^2*par(I.k38))*X(I.VII);
+DF(I.VIIa,I.VIIa_TF) = (par(I.v39))/((1+X(I.VIIa_TF)/par(I.k39))^2*par(I.k39))*X(I.VII);
+DF(I.VIIa,I.IXa)     = (par(I.v40))/((1+X(I.IXa)/par(I.k40))^2*par(I.k40))*X(I.VII);
 DF(I.VIIa,I.VIIa)    = -(X(I.TF))/(par(I.c29))-par(I.degVIIa);
 
 %%% -----------------------------------------------------------------------
@@ -116,18 +141,18 @@ DF(I.VIIa,I.VIIa)    = -(X(I.TF))/(par(I.c29))-par(I.degVIIa);
 %%%
 DF(I.X,I.X)          = -(par(I.v7)*X(I.IXa))/(par(I.k7)+X(I.IXa))-(par(I.v8)*X(I.IXa_VIIIa))/(par(I.k8)+X(I.IXa_VIIIa))...
                         -(par(I.v9)*X(I.VIIa))/(par(I.k9)+X(I.VIIa))-(par(I.v34)*X(I.VIIa_TF))/(par(I.k34)+X(I.VIIa_TF))-par(I.degX);
-DF(I.X,I.IXa)        = -(par(I.v7)*par(I.k7))/(par(I.k7)+X(I.IXa))^2*X(I.X);
-DF(I.X,I.IXa_VIIIa)  = -(par(I.v8)*par(I.k8))/(par(I.k8)+X(I.IXa_VIIIa))^2*X(I.X);
-DF(I.X,I.VIIa)       = -(par(I.v9)*par(I.k9))/(par(I.k9)+X(I.VIIa))^2*X(I.X);
-DF(I.X,I.VIIa_TF)    = -(par(I.v34)*par(I.k34))/(par(I.k34)+X(I.VIIa_TF))^2*X(I.X);
+DF(I.X,I.IXa)        = -(par(I.v7))/((1+X(I.IXa)/par(I.k7))^2*par(I.k7))*X(I.X);
+DF(I.X,I.IXa_VIIIa)  = -(par(I.v8))/((1+X(I.IXa_VIIIa)/par(I.k8))^2*par(I.k8))*X(I.X);
+DF(I.X,I.VIIa)       = -(par(I.v9))/((1+X(I.VIIa)/par(I.k9))^2*par(I.k9))*X(I.X);
+DF(I.X,I.VIIa_TF)    = -(par(I.v34))/((1+X(I.VIIa_TF)/par(I.k34))^2*par(I.k34))*X(I.X);
 DF(I.X,I.VKH2)       = par(I.aX);
 
 DF(I.Xa,I.X)         = (par(I.v7)*X(I.IXa))/(par(I.k7)+X(I.IXa))+(par(I.v8)*X(I.IXa_VIIIa))/(par(I.k8)+X(I.IXa_VIIIa))...
                         +(par(I.v9)*X(I.VIIa))/(par(I.k9)+X(I.VIIa))+(par(I.v34)*X(I.VIIa_TF))/(par(I.k34)+X(I.VIIa_TF));
-DF(I.Xa,I.IXa)       = (par(I.v7)*par(I.k7))/(par(I.k7)+X(I.IXa))^2*X(I.X);
-DF(I.Xa,I.IXa_VIIIa) = (par(I.v8)*par(I.k8))/(par(I.k8)+X(I.IXa_VIIIa))^2*X(I.X);
-DF(I.Xa,I.VIIa)      = (par(I.v9)*par(I.k9))/(par(I.k9)+X(I.VIIa))^2*X(I.X);
-DF(I.Xa,I.VIIa_TF)   = (par(I.v34)*par(I.k34))/(par(I.k34)+X(I.VIIa_TF))^2*X(I.X);
+DF(I.Xa,I.IXa)       = (par(I.v7))/((1+X(I.IXa)/par(I.k7))^2*par(I.k7))*X(I.X);
+DF(I.Xa,I.IXa_VIIIa) = (par(I.v8))/((1+X(I.IXa_VIIIa)/par(I.k8))^2*par(I.k8))*X(I.X);
+DF(I.Xa,I.VIIa)      = (par(I.v9))/((1+X(I.VIIa)/par(I.k9))^2*par(I.k9))*X(I.X);
+DF(I.Xa,I.VIIa_TF)   = (par(I.v34))/((1+X(I.VIIa_TF)/par(I.k34))^2*par(I.k34))*X(I.X);
 DF(I.Xa,I.Xa)        = -(X(I.Va))/(par(I.c27))-(X(I.TFPI))/(par(I.c32))-((X(I.AT_III_Heparin)))/par(I.c45)-par(I.degXa);
 DF(I.Xa,I.Va)        = -(X(I.Xa))/(par(I.c27));
 DF(I.Xa,I.TFPI)      = -(X(I.Xa))/(par(I.c32));
@@ -143,7 +168,7 @@ DF(I.Va,I.V)      = (par(I.v10)*X(I.IIa))/(par(I.k10)+X(I.IIa));
 DF(I.Va,I.IIa)    = (par(I.v10)*par(I.k10))/(par(I.k10)+X(I.IIa))^2*X(I.V);
 DF(I.Va,I.Va)     = -(par(I.v11)*X(I.APC_PS))/(par(I.k11)+X(I.APC_PS))-(X(I.Xa))/(par(I.c27))-par(I.degVa);
 DF(I.Va,I.Xa)     = -(X(I.Va))/(par(I.c27));
-DF(I.Va,I.APC_PS) = -(par(I.v11)*par(I.k11))/(par(I.k11)+X(I.APC_PS))^2*X(I.Va);
+DF(I.Va,I.APC_PS) = -par(I.v11)/((1+X(I.APC_PS)/par(I.k11))^2*par(I.k11))*X(I.Va);
 
 %%% -----------------------------------------------------------------------
 %%% eq. 15 : Complex Xa_Va
@@ -158,19 +183,19 @@ DF(I.Xa_Va,I.APC_PS) = -(par(I.v25)*par(I.k25))/(par(I.k25)+X(I.APC_PS))^2*X(I.X
 %%%
 
 DF(I.II,I.II)           = -(par(I.v12)* (X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom) ))/(par(I.k12)+(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom)))-(par(I.v13)*(X(I.Xa)+X(I.CVenom_Tiger)))/(par(I.k13)+(X(I.Xa)+X(I.CVenom_Tiger)))-par(I.degII);
-DF(I.II,I.Xa_Va)        = -(par(I.v12)*par(I.k12))/(par(I.k12)+X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))^2*X(I.II);
-DF(I.II,I.CVenom)       = -(par(I.v12)*par(I.k12))/(par(I.k12)+X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))^2*X(I.II);
-DF(I.II,I.TaipanVenom)  = -(par(I.v12)*par(I.k12))/(par(I.k12)+X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))^2*X(I.II);
-DF(I.II,I.Xa)           = -(par(I.v13)*par(I.k13))/(par(I.k13)+X(I.Xa)+X(I.CVenom_Tiger))^2*X(I.II);
-DF(I.II,I.CVenom_Tiger) = -(par(I.v13)*par(I.k13))/(par(I.k13)+X(I.Xa)+X(I.CVenom_Tiger))^2*X(I.II);
+DF(I.II,I.Xa_Va)        = -(par(I.v12))/((1+X(I.Xa_Va)/par(I.k12)+X(I.CVenom)/par(I.k12)+X(I.TaipanVenom)/par(I.k12))^2*par(I.k12))*X(I.II);
+DF(I.II,I.CVenom)       = -(par(I.v12))/((1+X(I.Xa_Va)/par(I.k12)+X(I.CVenom)/par(I.k12)+X(I.TaipanVenom)/par(I.k12))^2*par(I.k12))*X(I.II);
+DF(I.II,I.TaipanVenom)  = -(par(I.v12))/((1+X(I.Xa_Va)/par(I.k12)+X(I.CVenom)/par(I.k12)+X(I.TaipanVenom)/par(I.k12))^2*par(I.k12))*X(I.II);
+DF(I.II,I.Xa)           = -(par(I.v13))/((1+X(I.Xa)/par(I.k13)+X(I.CVenom_Tiger)/par(I.k13))^2*par(I.k13))*X(I.II);
+DF(I.II,I.CVenom_Tiger) = -(par(I.v13))/((1+X(I.Xa)/par(I.k13)+X(I.CVenom_Tiger)/par(I.k13))^2*par(I.k13))*X(I.II);
 DF(I.II,I.VKH2)         = par(I.aII);
 
 DF(I.IIa,I.II)              = (par(I.v12)*(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom)))/(par(I.k12)+X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))+(par(I.v13)*(X(I.Xa)+X(I.CVenom_Tiger)))/(par(I.k13)+(X(I.Xa)+X(I.CVenom_Tiger)));
-DF(I.IIa,I.Xa_Va)           = (par(I.v12)*par(I.k12))/(par(I.k12)+X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))^2*X(I.II);
-DF(I.IIa,I.CVenom)          = (par(I.v12)*par(I.k12))/(par(I.k12)+X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))^2*X(I.II);
-DF(I.IIa,I.TaipanVenom)     = (par(I.v12)*par(I.k12))/(par(I.k12)+X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))^2*X(I.II);
-DF(I.IIa,I.Xa)              = (par(I.v13)*par(I.k13))/(par(I.k13)+X(I.Xa)+X(I.CVenom_Tiger))^2*X(I.II);
-DF(I.IIa,I.CVenom_Tiger)    = (par(I.v13)*par(I.k13))/(par(I.k13)+X(I.Xa)+X(I.CVenom_Tiger))^2*X(I.II);
+DF(I.IIa,I.Xa_Va)           = (par(I.v12))/((1+X(I.Xa_Va)/par(I.k12)+X(I.CVenom)/par(I.k12)+X(I.TaipanVenom)/par(I.k12))^2*par(I.k12))*X(I.II);
+DF(I.IIa,I.CVenom)          = (par(I.v12))/((1+X(I.Xa_Va)/par(I.k12)+X(I.CVenom)/par(I.k12)+X(I.TaipanVenom)/par(I.k12))^2*par(I.k12))*X(I.II);
+DF(I.IIa,I.TaipanVenom)     = (par(I.v12))/((1+X(I.Xa_Va)/par(I.k12)+X(I.CVenom)/par(I.k12)+X(I.TaipanVenom)/par(I.k12))^2*par(I.k12))*X(I.II);
+DF(I.IIa,I.Xa)              = (par(I.v13))/((1+X(I.Xa)/par(I.k13)+X(I.CVenom_Tiger)/par(I.k13))^2*par(I.k13))*X(I.II);
+DF(I.IIa,I.CVenom_Tiger)    = (par(I.v13))/((1+X(I.Xa)/par(I.k13)+X(I.CVenom_Tiger)/par(I.k13))^2*par(I.k13))*X(I.II);
 DF(I.IIa,I.IIa)             = -(X(I.Tmod))/(par(I.c28))-((X(I.AT_III_Heparin)))/par(I.c44)-par(I.degIIa);
 DF(I.IIa,I.Tmod)            = -(X(I.IIa))/(par(I.c28));
 DF(I.IIa,I.AT_III_Heparin)  = -(X(I.IIa))/par(I.c44);
@@ -191,15 +216,16 @@ DF(I.Fg,I.P)      = -(par(I.v15)*par(I.k15))/(par(I.k15)+X(I.P))^2*X(I.Fg);
 
 DF(I.F,I.Fg)      = (par(I.v14)*X(I.IIa))/(par(I.k14)+X(I.IIa));
 DF(I.F,I.F)       = -(par(I.v16)*X(I.XIIIa))/(par(I.k16)+X(I.XIIIa))-(par(I.v17)*X(I.P))/(par(I.k17)+X(I.P))-par(I.degF);
-DF(I.F,I.IIa)     = (par(I.v14)*par(I.k14))/(par(I.k14)+X(I.IIa))^2*X(I.Fg);
-DF(I.F,I.XIIIa)   = -(par(I.v16)*par(I.k16))/(par(I.k16)+X(I.XIIIa))^2*X(I.F);
-DF(I.F,I.P)       = -(par(I.v17)*par(I.k17))/(par(I.k17)+X(I.P))^2*X(I.F);
+DF(I.F,I.IIa)     = (par(I.v14))/(par(I.k14)+2*X(I.IIa)+X(I.IIa)^2/par(I.k14))*X(I.Fg);
+DF(I.F,I.XIIIa)   = -par(I.v16)/(par(I.k16)+2*X(I.XIIIa)+X(I.XIIIa)^2/par(I.k16))*X(I.F); %-(par(I.v16)*par(I.k16))/(par(I.k16)+X(I.XIIIa))^2*X(I.F);
+DF(I.F,I.P)       = -(par(I.v17))/(par(I.k17)+2*X(I.P)+X(I.P)^2/par(I.k17))*X(I.F); %-(par(I.v17)*par(I.k17))/(par(I.k17)+X(I.P))^2*X(I.F);
+
 
 DF(I.XF,I.F)      = (par(I.v16)*X(I.XIIIa))/(par(I.k16)+X(I.XIIIa));
 DF(I.XF,I.XF)     = -(par(I.v18)*X(I.P))/(par(I.k18)+X(I.P))-(par(I.v19)*X(I.APC_PS))/(par(I.k19)+X(I.APC_PS))-par(I.degXF);
 DF(I.XF,I.P)      = -(par(I.v18)*par(I.k18))/(par(I.k18)+X(I.P))^2*X(I.XF);
 DF(I.XF,I.APC_PS) = -(par(I.v19)*par(I.k19))/(par(I.k19)+X(I.APC_PS))^2*X(I.XF);
-DF(I.XF,I.XIIIa)  = (par(I.v16)*par(I.k16))/(par(I.k16)+X(I.XIIIa))^2*X(I.F);
+DF(I.XF,I.XIIIa)  = par(I.v16)/(par(I.k16)+2*X(I.XIIIa)+X(I.XIIIa)/par(I.k16))*X(I.F); %(par(I.v16)*par(I.k16))/(par(I.k16)+X(I.XIIIa))^2*X(I.F);
 
 DF(I.FDP,I.Fg)    = (par(I.v15)*X(I.P))/(par(I.k15)+X(I.P))+par(I.degFg);
 DF(I.FDP,I.F)     = (par(I.v17)*X(I.P))/(par(I.k17)+X(I.P))+par(I.degF);
@@ -278,9 +304,9 @@ DF(I.TF,I.VIIa)         = -(X(I.TF))/(par(I.c29));
 DF(I.VII_TF,I.VII_TF)   = -(par(I.v33)*X(I.Xa))/(par(I.k33)+X(I.Xa))-(par(I.v36)*X(I.TF))/(par(I.k36)+X(I.TF))-par(I.degVIITF);
 DF(I.VII_TF,I.VII)      = (X(I.TF))/(par(I.c30));
 DF(I.VII_TF,I.TF)       = (X(I.VII))/(par(I.c30))-(par(I.v36)*par(I.k36))/(par(I.k36)+X(I.TF))^2*X(I.VII_TF);
-DF(I.VII_TF,I.Xa)       = -(par(I.v33)*par(I.k33))/(par(I.k33)+X(I.Xa))^2*X(I.VII_TF);
+DF(I.VII_TF,I.Xa)       = -(par(I.v33))/(par(I.k33)+2*X(I.Xa)+X(I.Xa)^2/par(I.k33))*X(I.VII_TF); %-(par(I.v33)*par(I.k33))/(par(I.k33)+X(I.Xa))^2*X(I.VII_TF);
 
-DF(I.VIIa_TF,I.Xa)      = (par(I.v33)*par(I.k33))/(par(I.k33)+X(I.Xa))^2*X(I.VII_TF);
+DF(I.VIIa_TF,I.Xa)      = (par(I.v33))/(par(I.k33)+2*X(I.Xa)+X(I.Xa)^2/par(I.k33))*X(I.VII_TF);
 DF(I.VIIa_TF,I.TF)      = (X(I.VIIa))/(par(I.c29))+(par(I.v36)*par(I.k36))/(par(I.k36)+X(I.TF))^2*X(I.VII_TF);
 DF(I.VIIa_TF,I.VII_TF)  = (par(I.v33)*X(I.Xa))/(par(I.k33)+X(I.Xa))+(par(I.v36)*X(I.TF))/(par(I.k36)+X(I.TF));
 DF(I.VIIa_TF,I.VIIa_TF) = -par(I.degVIIaTF)-(X(I.Xa_TFPI))/(par(I.c31));
@@ -334,6 +360,7 @@ DF(I.VK,I.VK_p)   = (par(I.VK_k21)/(par(I.VK_V)));
 
 DF(I.VKH2,I.VK)   = par(I.degVK2)*(1-(par(I.lmax)*X(I.Cwarf))/(par(I.IC50)+X(I.Cwarf)));
 DF(I.VKH2,I.VKH2) = -par(I.degVKH2);
+DF(I.VKH2,I.Cwarf) = -X(I.VK)*par(I.degVK2)*(par(I.lmax)/(X(I.Cwarf) + par(I.IC50)) - (X(I.Cwarf)*par(I.lmax))/(X(I.Cwarf) + par(I.IC50))^2);
 
 DF(I.VKO,I.VKO)   = -par(I.degVKO)*(1-(par(I.lmax)*X(I.Cwarf))/(par(I.IC50)+X(I.Cwarf)));
 DF(I.VKO,I.VKH2)  = par(I.degVKH2);
@@ -372,7 +399,7 @@ DF(I.ENO_p,I.ENO_p)          = - par(I.k21_Hep);
 %%% -----------------------------------------------------------------------
 %%% eqs. 53 AUC of Fibrin
 %%%
-DF(I.AUC,I.F) = 1;
+DF(I.AUC,I.F) = 3600;
 %%% -----------------------------------------------------------------------
 %%% eqs.54 and 55 for brown snake venom with absorption compartment (A) and
 %%% concentration compartment (C)
@@ -419,6 +446,15 @@ DF(I.AT_III_UFH,I.Xa)    = -X(I.AT_III_UFH)/par(I.c45);
 DF(I.AT_III_UFH,I.IXa)   = -X(I.AT_III_UFH)/par(I.c46);
 
 %%% -----------------------------------------------------------------------
+%%% assign output jacobian
+%%%
+
+
+%%% set jacobian of environmental, negligible and conservation law 
+%%% state variables to zero
+%%%
+DF(I.env,:) = 0; DF(I.neg,:) = 0; 
+jac = DF;
 
 %%% check if there are NaN or Inf entries
 if any(isinf(DF),'all') || any(isnan(DF),'all')

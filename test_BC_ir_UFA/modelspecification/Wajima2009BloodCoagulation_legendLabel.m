@@ -1,18 +1,14 @@
-%%% Version: 19 Jun 2022
+%%% Version: August 28th, 2017
 %%%
-%%% I  = <MODELNAME>_legendlabels(model)
+%%% call by: [legendStates] = Wajima_bloodCoagulation_legendLabel(States)
 %%%
-%%% This function assigns the better readable labels to states
+%%% This function assigns the right labels to the given Species to 
+%%% facilitate plotting.
+%%%
 %%% 
-%%% Input:  model       model structure
-%%%                   
-%%% Output: I           updated strucutre 
-%%% 
+%%% Author: Jane Knoechel 
 %%%
-%%% Author: Jane Knoechel and Wilhelm Huisinga
-%%%
-
-function I = Wajima2009BloodCoagulation_legendlabels(I)
+function LegendStates=Wajima2009BloodCoagulation_legendLabel(States)
 
 S=struct('XII','XII','XIIa','XIIa','VIII','VIII', 'VIIIa','VIIIa','IX','IX','IXa','IXa',   ...
     'XI', 'XI','XIa','XIa','VII','VII','VIIa','VIIa','X','X','Xa','Xa', ...
@@ -29,6 +25,7 @@ S=struct('XII','XII','XIIa','XIIa','VIII','VIII', 'VIIIa','VIIIa','IX','IX','IXa
     'ATIII','ATIII','delayTaipan1','delayTaipan1','delayTaipan2','delayTaipan2',...
     'AVenom_Tiger','AVenom\_Tiger','CVenom_Tiger','CVenom\_Tiger','AT_III_UFH','AT:III:UFH');
 
-for k = 1:I.nstates
-    I.nmstatelegend{k} = S.(I.nmstate{k});
+for i=1:length(States)
+    LegendStates{i}=S.(States{i});
+end
 end

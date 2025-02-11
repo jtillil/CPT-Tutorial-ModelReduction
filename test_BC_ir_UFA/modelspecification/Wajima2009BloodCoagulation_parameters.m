@@ -1,11 +1,12 @@
-%%% Version: 19 Jun 2022
+%%% Version: February 09th, 2020
 %%%
-%%% par  =  <MODELNAME>_parameters(model)
+%%% par = Wajima2009BloodCoagulation_parameters(model)
 %%%
-%%% This function creates a structure with all parameters
+%%% This function creates a structure with all parameters for
+%%% the blood coagulation model
 %%%
 %%% Input :  model      model structure containing the index structure of
-%%%                     the model and its initial values 
+%%%                     the model and its initial values X0
 %%%                      
 %%% Output : par        parameter vector
 %%%
@@ -62,6 +63,9 @@ par(I.v10) = 50000;          par(I.k10) = 10;
 if contains(model.scenario,'in_vivo')
     par(I.v10)  =  25000;        par(I.k10)  =  1800;
 end
+if contains(model.scenario,'warfarin')||contains(model.scenario,'_ss')
+    par(I.v10) = 50000;          par(I.k10) = 10;
+end
 
 par(I.v11) = 50;             par(I.k11) = 1;
 
@@ -75,6 +79,9 @@ par(I.v15) = 500;            par(I.k15) = 500;
 %%% adaptations by Gulati et al for the in-vivo scenario
 if contains(model.scenario,'in_vivo')
     par(I.v14) = 21000;          par(I.k14) = 30000;
+end
+if contains(model.scenario,'warfarin')||contains(model.scenario,'_ss')
+    par(I.v14) = 20000;          par(I.k14) = 0.5;
 end
 
 par(I.v16) = 7;              par(I.k16) = 10;
@@ -180,16 +187,97 @@ par(I.vtaipan)      = 70;  par(I.ktaipan)      =  10;
 %%% -----------------------------------------------------------------------
 %%% warfarin PK parameters
 %%% 
-par(I.ka_Warf) = 1.0;
-par(I.Vd_Warf) = 10;
-par(I.Cl_Warf) = 0.2;
+par(I.warf_dose) = 4.0; %4mg
+pk_pars = "Wajima_wildtype";
+switch pk_pars
+    case "Wajima" % original parameters from Wajima et al.
+        par(I.ka_Warf) = 1.0;
+        par(I.Vd_Warf) = 10;
+        par(I.Cl_Warf) = 0.2;
+    case "Hamberg" % Hamberg et al. 2010
+        par(I.ka_Warf) = 2.0;
+        par(I.Vd_Warf) = 14.3;
+        Cl1 = 0.174;
+        Cl2 = 0.0879;
+        Cl3 = 0.0422;
+        if isfield(model,'covariates')&& isfield(model.covariates,'cyp')
+            par(I.Cl_Warf) = model.covariates.cyp*[Cl1; Cl2; Cl3];
+        else
+            par(I.Cl_Warf) = [2 0 0]*[Cl1; Cl2; Cl3]; % wildtype
+            %fprintf('\n--> unknown CYP-genotype, expectation used \n\n')
+            %par(I.Cl_Warf) = 2*[0.815,0.112,0.073]*[Cl1; Cl2; Cl3];
+        end
+    case "Wajima_augmented" % Wajima parameters as reference, relative changes for genotypes as in Hamberg
+        par(I.ka_Warf) = 1.0;
+        par(I.Vd_Warf) = 10;
+        Cl1 = 0.1124;
+        Cl2 = 0.0568;
+        Cl3 = 0.0273;
+        if isfield(model,'covariates')&& isfield(model.covariates,'cyp')
+            par(I.Cl_Warf) = model.covariates.cyp*[Cl1; Cl2; Cl3];
+        else
+            %fprintf('\n--> unknown CYP-genotype, expectation used \n\n')
+            par(I.Cl_Warf) = 2*[0.815,0.112,0.073]*[Cl1; Cl2; Cl3];
+        end
+    case "Wajima_wildtype" % Wajima parameters as reference, relative changes for genotypes as in Hamberg
+        par(I.ka_Warf) = 1.0;
+        par(I.Vd_Warf) = 10;
+        Cl1 = 0.1;
+        Cl2 = 0.0879/0.174*0.1; %0.0505
+        Cl3 = 0.0422/0.174*0.1; %0.0243
+        if isfield(model,'covariates')&& isfield(model.covariates,'cyp')
+            par(I.Cl_Warf) = model.covariates.cyp*[Cl1; Cl2; Cl3];
+        else
+            %fprintf('\n--> unknown CYP-genotype, expectation used \n\n')
+            par(I.Cl_Warf) = 2*Cl1;
+        end
+    otherwise
+        fprintf('\n--> unknown pk_pars :-( Please fix!\n\n');
+        error('')
+end
 par(I.ke_Warf) = par(I.Cl_Warf)/par(I.Vd_Warf);
 
 %%% -----------------------------------------------------------------------
 %%% warfarin PD parameters
 %%% 
 par(I.lmax) = 1;
-par(I.IC50) = 0.34;
+switch pk_pars
+    case "Wajima" % original parameters from Wajima et al.
+        par(I.IC50) = 0.34;
+    case "Hamberg" % Hamberg et al. 2010
+        ic50_factor=0.05;
+        IC50_1 = 2.05*ic50_factor;
+        IC50_2 = 0.96*ic50_factor;
+        if isfield(model,'covariates')&& isfield(model.covariates,'vko')
+            par(I.IC50) = model.covariates.vko*[IC50_1,  IC50_2]';
+        else
+            par(I.IC50) = [2 0]*[IC50_1,  IC50_2]';
+            %fprintf('\n--> unknown CYP-genotype, expectation used \n\n')
+            %par(I.IC50) = 2*[0.608,0.392]*[IC1,  IC2]'; % allele frequencies from WARG study (Hamberg 2010), parameters chosen s.t. expected value 0.34
+        end
+    case "Wajima_augmented" % Wajima parameters as reference, relative changes for genotypes as in Hamberg
+        IC1 = 0.2148;
+        IC2 = 0.1006;
+        if isfield(model,'covariates')&& isfield(model.covariates,'vko')
+            par(I.IC50) = model.covariates.vko*[IC1,  IC2]';
+        else
+            %fprintf('\n--> unknown CYP-genotype, expectation used \n\n')
+            par(I.IC50) = 2*[0.608,0.392]*[IC1,  IC2]'; % allele frequencies from WARG study (Hamberg 2010), parameters chosen s.t. expected value 0.34
+        end
+    case "Wajima_wildtype" % Wajima parameters as reference, relative changes for genotypes as in Hamberg
+        IC1 = 0.17;
+        IC2 = 0.96/2.05*0.17;
+        if isfield(model,'covariates')&& isfield(model.covariates,'vko')
+            par(I.IC50) = model.covariates.vko*[IC1,  IC2]';
+        else
+            %fprintf('\n--> unknown CYP-genotype, expectation used \n\n')
+            par(I.IC50) = 2*IC1; % allele frequencies from WARG study (Hamberg 2010), parameters chosen s.t. expected value 0.34
+        end
+    otherwise
+        fprintf('\n--> unknown pk_pars :-( Please fix!\n\n');
+        error('')
+end
+
 
 %%% -----------------------------------------------------------------------
 %%% heparin PK parameters (unfractioned heparin UFH or low-molecular weight heparin LMWH)
@@ -238,15 +326,17 @@ par(I.degVIIaTFXaTFPI) = 20.0;    par(I.degTAT) = 0.2;          par(I.degCA) = 0
 par(I.degVK2) = 0.0228;           
 
 %%% degVKH2 and degVKO depend on the initial concentration
-%%%
-X0 = model.X0prior2input;
+%%% VK_V adapted for steady state of VK_p
+X0 = model.X0;
 
 par(I.degVKH2) = par(I.degVK2) * (X0(I.VK)./(X0(I.VKH2)));
 par(I.degVKO)  = par(I.degVK2) * (X0(I.VK)./(X0(I.VKO)));
+%par(I.VK_V)    = model.X0(I.VK_p)/X0(I.VK)*par(I.VK_k21)/par(I.VK_k12);
+
 
 %%% to avoid numerical issues if either VKH2 or VK are considered as
 %%% neglected species degradation rate constants are assumed to be zero
-if isfield(I,'neg') && (ismember('VKH2',I.neg) || ismember('VK',I.neg))
+if isfield(I,'neg') && (ismember(I.VKH2,I.neg) || ismember(I.VK,I.neg))
     par(I.degVKH2) = 0;
     par(I.degVKO)  = 0;
 end
@@ -274,7 +364,6 @@ par(I.pVK)      = par(I.degVK)   * X0(I.VK);
 par(I.pXII)     = par(I.degXII)  * X0(I.XII);
 par(I.pPk)      = par(I.degPk)   * X0(I.Pk);
 
-
 %%% in the case of the in vitro setting (PT or aPTT) all production rates are assumed to
 %%% be zero (see Wajima et al)
 if contains(model.scenario,'in_vitro')
@@ -288,7 +377,6 @@ if contains(model.scenario,'in_vitro')
         par(I.pVK) = 0;    par(I.pXII)  = 0;
         par(I.pPk) = 0;
 end
-
 
 end
 

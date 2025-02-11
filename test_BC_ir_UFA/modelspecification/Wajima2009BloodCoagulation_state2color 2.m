@@ -1,10 +1,17 @@
 %%% Version: January 24th, 2020
 %%%
-%%% call by: Wajima2009BloodCoagulation_state2color(I)
+%%% call by: redmodel  =  model_order_reduction(model,seqofstates,relerrTOL)
 %%%
 %%% This function assigns the colors to the given state variable to 
 %%% facilitate plotting and to have always the same color for the specific 
 %%% species.
+%%%
+%%% Input:  state               structure specifying the model
+%%%         seqofstates         sequence, in which state variables are
+%%%                             tested for model order reduction
+%%%         relerrTOL           user defined relative error threshold
+%%%
+%%% Output: redmodel            structure specifying the reduced order model
 %%%
 %%% Citation:
 %%% 
@@ -42,7 +49,7 @@ map = struct('XII',color(1+(1-1)*7,:),'XIIa',color(2+(2-1)*7,:),'VIII',color(3+(
     'AT_III_Heparin',color(51+(51-1)*7,:),'ENO_p',color(52+(52-1)*7,:),'AUC',color(53+(53-1)*7,:),...
     'AVenom',[1 0.843137254901961 0],'CVenom',color(55+(55-1)*7,:),'TaipanVenom',color(56+(56-1)*7,:),'ATIII',color(57+(57-1)*7,:),...
     'delayTaipan1',color(58+(58-1)*7,:),'delayTaipan2',color(59+(59-1)*7,:),'AVenom_Tiger',color(60+(60-1)*7,:),...
-    'CVenom_Tiger',color(61+(61-1)*7,:),'AT_III_UFH',color(62+(62-1)*7,:));%,'PT',[0 0 0]
+    'CVenom_Tiger',color(61+(61-1)*7,:),'AT_III_UFH',color(62+(62-1)*7,:),'lump',[0 0 0]);
 
 % initialize output and assign colors
 state2color = NaN(I.nstates,3);
