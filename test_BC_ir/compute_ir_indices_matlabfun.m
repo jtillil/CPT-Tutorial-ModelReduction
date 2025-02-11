@@ -31,7 +31,9 @@ if ~isempty(setxor(I.dyn,1:I.nstates))
 end
 
 % ODE solver options and right hand side of ODE
-options.NonNegative = 1:I.nstates;
+% options.NonNegative = 1:I.nstates;
+% options.AbsTol = [];
+% options.RelTol = 1e-2;
 % if jacobian specified, also give pattern of jacobian of extODE
 % if ~isempty(model.jacfun)
     options.JPattern = extodejacpatfun(model);
@@ -65,7 +67,8 @@ extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
 
 % solving the extended ODE system to obtain J_u(0,t*), including reshaping
 % the output to obtain Jacobian in matrix form (see above)
-[~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
+[~,extX_ref]  = ode45(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
+% [~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
 % [~,extX_ref]  = ode23s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
 
 % decompose extended state vector into states and Wronski matrix; initial
@@ -73,6 +76,10 @@ extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
 % different ODEs used to determine it (original vs. extended ODE)
 eX_ref = extX_ref(:,1:I.nstates);
 eW_ref = extX_ref(:,I.nstates+1:end);
+
+% extract max
+maxeX_ref = max(eX_ref, [], 1);
+releX_ref = eX_ref ./ repmat(maxeX_ref, [size(eX_ref, 1), 1]);
 
 %%% define Jacobian J_u(t*,t0)
 Jac_u = permute(reshape(eW_ref,length(t_ref),I.nstates,I.nstates),[2,3,1]);
@@ -87,16 +94,18 @@ if model.quicktest
 end
 
 if inform, fprintf(' and for each t*: '); end
-for ts = 1:ntstar-1
-        
+for ts = 1:(ntstar-1)
+    
     if inform, fprintf('%d,',ntstar-ts); end
     
     % calculate J_y(t*,t), including reshaping the output to obtain Jacobian 
     % in matrix form (see above) 
     tstarspan  = t_ref(ts:end);
     extX0_tstar = [eX_ref(ts,:)';W0(:)];
-    [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
-    
+    % [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+    % [t_tstar,extX_tstar]  = ode23s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+    [t_tstar,extX_tstar]  = ode45(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+
     W_tstar = extX_tstar(:,I.nstates+1:end);
     
     % define Jacobian J_y(T,t*)
@@ -104,10 +113,18 @@ for ts = 1:ntstar-1
 
     % calculate index at timepoint t*, including evaluation of an integral
     % for the observability index via the trapezoidal rule
-    for k = relevantstates
-        obs.index(ts,k)   = sqrt( 1/t_ref(end) * trapz(t_tstar, Jac_y(I.output,k,:).^2) );
-        contr.index(ts,k) = abs( Jac_u(k,I.input,ts) );
-        ir.index(ts,k)    = contr.index(ts,k) * obs.index(ts,k);
+    if length(t_tstar) == length(tstarspan)
+        for k = relevantstates
+            obs.index(ts,k)   = sqrt( 1/t_ref(end) * trapz(t_tstar, Jac_y(I.output,k,:).^2) );
+            contr.index(ts,k) = abs( Jac_u(k,I.input,ts) );
+            ir.index(ts,k)    = contr.index(ts,k) * obs.index(ts,k);
+        end
+    else
+        for k = relevantstates
+            obs.index(ts,k)   = NaN;
+            contr.index(ts,k) = NaN;
+            ir.index(ts,k)    = NaN;
+        end
     end
     clear Jac_y extX_tstar
     

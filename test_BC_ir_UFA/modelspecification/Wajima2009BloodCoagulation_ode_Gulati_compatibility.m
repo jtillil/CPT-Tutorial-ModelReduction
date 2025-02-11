@@ -29,13 +29,12 @@
 %%% Author: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function dX = Wajima2009BloodCoagulation_ode(~,X,par,model)
+function dX = Wajima2009BloodCoagulation_ode_Gulati_compatibility(~,X,par,model)
 
 %%% assign model indexing
 I  = model.I;
 
 %%% initialize rhs vector
-% dX = zeros(size(X));
 dX = 0*X;
 
 %%% -----------------------------------------------------------------------
@@ -140,12 +139,19 @@ dX(I.Xa_Va) = r27-r25-par(I.degXaVa)*X(I.Xa_Va);
 %%% -----------------------------------------------------------------------
 %%% eqs. 16 and 17 : Prothrombin (II) and activation
 %%%
-r12 =  (par(I.v12)*(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) / ...
-          (par(I.k12)+(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) * X(I.II);
-r13 = (par(I.v13)*(X(I.Xa)+X(I.CVenom_Tiger)))/...
-          (par(I.k13)+(X(I.Xa)+X(I.CVenom_Tiger))) * X(I.II);
-r28 = (X(I.IIa)*X(I.Tmod))/(par(I.c28));
-r44 = (X(I.IIa)*(X(I.AT_III_Heparin)))/par(I.c44);
+% r12 =  (par(I.v12)*(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) / ...
+%           (par(I.k12)+(X(I.Xa_Va)+X(I.CVenom)+X(I.TaipanVenom))) * X(I.II);
+% r12 =  (par(I.v12)*(X(I.Xa_Va) + X(I.CVenom))) / ...
+%           (par(I.k12)+(X(I.CVenom) + X(I.Xa_Va))) * X(I.II);
+r12 =  (par(I.v12)*(X(I.CVenom))) / ...
+          (par(I.k12)+(X(I.CVenom))) * X(I.II);
+% r13 = (par(I.v13)*(X(I.Xa)+X(I.CVenom_Tiger)))/...
+%           (par(I.k13)+(X(I.Xa)+X(I.CVenom_Tiger))) * X(I.II);
+r13 = 0;
+% r28 = (X(I.IIa)*X(I.Tmod))/(par(I.c28));
+% r44 = (X(I.IIa)*(X(I.AT_III_Heparin)))/par(I.c44);
+r28 = 0;
+r44 = 0;
 pII = par(I.aII)*X(I.VKH2);
 
 dX(I.II)  = pII-r12-r13-par(I.degII)*X(I.II);

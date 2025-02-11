@@ -10,11 +10,12 @@ model = set_up_the_model(model);
 
 model = ode2matlabfun(model);
 
-[model.ir, model.contr, model.obs] = compute_ir_indices_matlabfun(model,saveresults);
-
 % model = compute_and_analyse_indices_matlabfun(model,'compute');
 
-% saveresults = false;
+saveresults = false;
+
+[model.ir, model.contr, model.obs] = compute_ir_indices_matlabfun(model,saveresults);
+
 % model.env  = compute_non_ir_indices(model,'env',saveresults);
 % model.pneg = compute_non_ir_indices(model,'pneg',saveresults);
 % model.cneg = compute_non_ir_indices(model,'cneg',saveresults);
