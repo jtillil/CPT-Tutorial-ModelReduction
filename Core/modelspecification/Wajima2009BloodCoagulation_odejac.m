@@ -23,7 +23,16 @@ function DF = Wajima2009BloodCoagulation_odejac(~,X,par,model)
 I  = model.I;
 
 %%% initialize the jacobian
-DF  = spalloc(I.nstates,I.nstates,3*I.nstates);
+% DF  = spalloc(I.nstates,I.nstates,3*I.nstates);
+sz = size(X);
+if sz(1) == 1
+    DF = repmat(0*X, [length(X) 1]);
+elseif sz(2) == 1
+    DF = repmat(0*X, [1 length(X)]);
+else
+    disp(sz)
+    error('Wrong size of X for jac fun.')
+end
 
 %%% -----------------------------------------------------------------------
 %%% define jacobian

@@ -3,14 +3,21 @@ clear; clc;
 addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 reduced_errors = struct;
 
+%% Calculate ir matlabfun
+
+% load model
+load("modelBC_SV40_from_JKn_2024.mat")
+
+[ir, contr, obs] = compute_ir_indices_matlabfun(model,false);
+
 %% Reduce model index analysis
 
 % load model
-load("modelBC_SV40.mat")
+load("modelBC_SV40_from_JKn_2024.mat")
 
 % initialize config and threshold
 config = repmat("dyn", [1, model.I.nstates]);
-t = 0.0683;
+t = 0.05;
 
 % assign config based on index analysis results
 for i = 1:model.I.nstates
@@ -61,6 +68,10 @@ disp(sum(config == "env"))
 disp(sum(config == "pss"))
 disp(sum(config == "pneg"))
 disp(sum(config == "cneg"))
+
+% calculate reduced model ir indices
+model.I = config2I(model.I, config, []);
+[irred.ir, irred.contr, irred.obs] = compute_ir_indices_matlabfun(model);
 
 %% save reduced solution plot
 size = 12;

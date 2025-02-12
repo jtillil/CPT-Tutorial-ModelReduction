@@ -35,7 +35,8 @@ function dX = Wajima2009BloodCoagulation_ode(~,X,par,model)
 I  = model.I;
 
 %%% initialize rhs vector
-dX = zeros(size(X));
+% dX = zeros(size(X));
+dX = 0*X;
 
 %%% -----------------------------------------------------------------------
 %%% specify system of ODEs 

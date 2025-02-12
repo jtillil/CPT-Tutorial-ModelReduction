@@ -1,4 +1,4 @@
-function model = ode2matlabfun(bigmodel)
+function [odefun, ode, jacfun, jac] = ode2matlabfun(bigmodel)
 
 %% read bigmodel
 model = bigmodel;
@@ -15,18 +15,21 @@ odefun_symbolic = bigmodel.odefun(t,X_sym,par_sym,bigmodel);
 disp(toc)
 % disp(odefun_symbolic)
 tic
-model.odefun = matlabFunction(odefun_symbolic,'Vars',{X_sym,par_sym});
-model.ode = matlabFunction(odefun_symbolic,'Vars',{X_sym,par_sym});
+odefun = matlabFunction(odefun_symbolic,'Vars',{X_sym,par_sym});
+ode = matlabFunction(odefun_symbolic,'Vars',{X_sym,par_sym});
 % model.odefun = matlabFunction(odefun_symbolic,'Vars',{X_sym,par_sym,t},'File',['../modelfiles/' model.name '_ode.m'],'Optimize',true);
 disp(toc)
 
 % check jac presence
-jac_present = true;
-if ~isfield(bigmodel, 'jac')
-    jac_present = false;
-elseif isempty(bigmodel.jac)
-    jac_present = false;
-end
+% jac_present = true;
+% if ~isfield(bigmodel, 'jac')
+%     jac_present = false;
+% elseif isempty(bigmodel.jac)
+%     jac_present = false;
+% end
+
+% always calculate jacfun
+jac_present = false;
 
 % generate jac matlabfun
 tic
@@ -42,8 +45,8 @@ else
 end
 disp(toc)
 tic
-model.jacfun = matlabFunction(jacfun_symbolic,'Vars',{X_sym,par_sym,t});
-model.jac = matlabFunction(jacfun_symbolic,'Vars',{X_sym,par_sym,t});
+jacfun = matlabFunction(jacfun_symbolic,'Vars',{X_sym,par_sym,t});
+jac = matlabFunction(jacfun_symbolic,'Vars',{X_sym,par_sym,t});
 % model.jacfun = matlabFunction(jacfun_symbolic,'Vars',{X_sym,par_sym,t},'File',['../modelfiles/' model.name '_jac.m'],'Optimize',true);
 disp(toc)
 

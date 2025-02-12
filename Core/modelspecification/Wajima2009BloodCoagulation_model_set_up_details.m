@@ -31,7 +31,7 @@ I = feval([model.name '_indexing']);
 
 fprintf('\n  --> Scenario: %s\n',model.scenario);
 switch model.scenario
-    case {'in_vivo_snakevenom_1h','in_vivo_snakevenom_40h'}
+    case {'in_vivo_snakevenom_1h','in_vivo_snakevenom_40h','in_vivo_snakevenom_50h'}
 
         %%% define input
         model.setup.input      = I.AVenom;
@@ -55,6 +55,9 @@ switch model.scenario
         elseif strcmp(model.scenario, 'in_vivo_snakevenom_40h')
             model.setup.tspan = [0 40];
             model.setup.unit.graphic.xlim = [-1 41]; % in output units
+        elseif strcmp(model.scenario, 'in_vivo_snakevenom_50h')
+            model.setup.tspan = [0 50];
+            model.setup.unit.graphic.xlim = [-1 51]; % in output units
         end
         model.setup.unit.graphic.transftime = @(x) x;
         model.setup.unit.graphic.time = 'h';

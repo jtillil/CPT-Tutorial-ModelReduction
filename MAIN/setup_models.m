@@ -6,33 +6,33 @@ config.non_ir   = true;
 config.analyze  = true;
 
 %% parallel pathways
-name = 'SimpleParallelPathways';
-namesimple = 'SPP';
-scenario = 'no_crosstalk';
-
-setupModel(name, namesimple, scenario, config)
-
-scenario = 'with_crosstalk';
-
-setupModel(name, namesimple, scenario, config)
+% name = 'SimpleParallelPathways';
+% namesimple = 'SPP';
+% scenario = 'no_crosstalk';
+% 
+% setupModel(name, namesimple, scenario, config)
+% 
+% scenario = 'with_crosstalk';
+% 
+% setupModel(name, namesimple, scenario, config)
 
 %% enzyme kinetics
-name = 'MMEnzymeKinetics';
-namesimple = 'MMEK';
-scenario = 'Cpss_Eenv';
-
-setupModel(name, namesimple, scenario, config)
-
-scenario = 'Cpss_EpCenv';
-
-setupModel(name, namesimple, scenario, config)
+% name = 'MMEnzymeKinetics';
+% namesimple = 'MMEK';
+% scenario = 'Cpss_Eenv';
+% 
+% setupModel(name, namesimple, scenario, config)
+% 
+% scenario = 'Cpss_EpCenv';
+% 
+% setupModel(name, namesimple, scenario, config)
 
 %% blood coagulation
-name = 'Wajima2009BloodCoagulation';
-namesimple = 'BC';
-scenario = 'in_vivo_snakevenom_40h';
-
-setupModel(name, namesimple, scenario, config)
+% name = 'Wajima2009BloodCoagulation';
+% namesimple = 'BC';
+% scenario = 'in_vivo_snakevenom_40h';
+% 
+% setupModel(name, namesimple, scenario, config)
 
 %% blood coagulation: snake venom 40h (Wajima 2009)
 % model = struct;
@@ -54,12 +54,12 @@ model.pss = load("Wajima2009BloodCoagulation_in_vivo_snakevenom_40h_pss_index.ma
 model.threshold = 0.1;
 model.analysis = analyse_all_indices(model);
 
-save("../Core/modelfiles/modelBC_SV40.mat", "model")
+save("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat", "model")
 
 model.threshold = 0.01;
 model.analysis = analyse_all_indices(model);
 
-save("../Core/modelfiles/modelBC_SV40_t0_01.mat", "model")
+save("../Core/modelfiles/modelBC_SV40_from_JKn_2024_t0_01.mat", "model")
 
 %% blood coagulation
 % model = struct;

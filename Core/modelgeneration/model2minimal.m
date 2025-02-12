@@ -87,7 +87,7 @@ if isfield(bigmodel, 'relerrnorm')
 end
 
 %% generate matlab functions 
-model = ode2matlabfun(model);
+[model.odefun, model.ode, model.jacfun, model.jac] = ode2matlabfun(bigmodel);
 
 %% param struct
 if isfield(bigmodel, 'param')
@@ -121,6 +121,13 @@ end
 % state_constant = zeros([length(X_sym), 1]);
 
 %% identify unimportant states
+
+% setup
+syms t
+X_sym = cell2sym(bigmodel.I.nmstate(:));
+par_sym = cell2sym(bigmodel.I.nmpar(:));
+odefun_symbolic = bigmodel.odefun(t,X_sym,par_sym,bigmodel);
+
 % create boolean vector for unnecessary states
 state_unimportant = zeros([length(X_sym), 1]);
 

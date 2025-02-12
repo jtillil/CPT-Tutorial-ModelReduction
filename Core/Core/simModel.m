@@ -17,20 +17,35 @@
 %%%
 
 % function [tout, Xout, log] = simModel(t, X0, par, model, timeout)
-function [tout, Xout, log, simtime] = simModel(t, X0, par, I, param, multiple, odefun, jacfun, simoptions)
+function [tout, Xout, log, simtime] = simModel(t, X0, par, I, param, multiple, odefun, jacfun, simoptions, odeoptions)
 
 % init log
 log = 'Log: ';
 
-% handle lumping
+% set ode options
+if exist("odeoptions", "var")
+    options = odeoptions;
+end
+
+% handle lumping, ir-index solving
 if exist("simoptions", "var")
     if isfield(simoptions, 'lumpmat')
         lumping = 1;
     else
         lumping = 0;
     end
+    if isfield(simoptions, 'ir_indices')
+        if simoptions.ir_indices
+            ir_indices = 1;
+        else
+            ir_indices = 0;
+        end
+    else
+        ir_indices = 0;
+    end
 else
     lumping = 0;
+    ir_indices = 0;
 end
 
 % init lumping matrices
@@ -178,7 +193,7 @@ simtime_start = tic;
 
 if ~multiple.multiple
     % without multiple dosing
-    [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
+    [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, ir_indices, lumping, lumpmat, invlumpmat, log);
 
 else
     % handling for multiple dosing
@@ -191,14 +206,14 @@ else
     tspan_total = t(:);
     X0_ref = X0(:) + u_ref;
     
-    % [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
+    % [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, ir_indices, lumping, lumpmat, invlumpmat, log);
     if tspan_total(1) < input_events(1)
         if length(tspan_total)==2
             tspan_local = [tspan_total(1) input_events(1)];
         else
             tspan_local = tspan_total(tspan_total<input_events(1));
         end
-        [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
+        [tout, Xout, log] = odesolver_loop(tspan_local, X0, par, I, odefun, options, ir_indices, lumping, lumpmat, invlumpmat, log);
         X0_ref = Xout(end,:)' + u_ref;
     end
     for i = 2:length(input_events)
@@ -210,7 +225,7 @@ else
             else
                 tspan_local = unique([input_events(i-1);tspan_total(tspan_total>=input_events(i-1) & tspan_total<=input_events(i));input_events(i)]);
             end
-            [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
+            [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, ir_indices, lumping, lumpmat, invlumpmat, log);
             %%% to avoid double timepoints in the time vector in the multiple
             %%% dosing case, the dosing timepoint is kept and the other discarded
             %%% such that in the state vector only the dosing state is included
@@ -243,7 +258,7 @@ else
         else
             tspan_local = tspan_total(tspan_total >= input_events(end));
         end
-        [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, lumping, lumpmat, invlumpmat, log);
+        [tout_local, Xout_local, log] = odesolver_loop(tspan_local, X0_ref, par, I, odefun, options, ir_indices, lumping, lumpmat, invlumpmat, log);
         tout = [tout; tout_local];
         Xout = [Xout; Xout_local];
     end
@@ -295,12 +310,22 @@ end
 %% internal helper functions
 
 % odesolver_loop
-function [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, lumping, lumpmat, invlumpmat, log)
+function [tout, Xout, log] = odesolver_loop(t, X0, par, I, odefun, options, ir_indices, lumping, lumpmat, invlumpmat, log)
 if isempty([I.pss])
-    if ~lumping
-        [tout, Xout] = ode15s(@(t,X) odefunModel(X,par,I,odefun), t, X0, options);
+    if ir_indices
+        if ~lumping
+            % odefun == extodefun(which calls odefunModel)
+            [tout, Xout] = ode15s(@(t,X) odefun(t,X,par,model), t, X0, options);
+        else
+            % odefun == extodefun(which calls odefunModel)
+            [tout, Xout] = ode15s(@(t,X) lumpmat * odefun(t,invlumpmat * X,par,model), t, X0, options);
+        end
     else
-        [tout, Xout] = ode15s(@(t,X) lumpmat * odefunModel(invlumpmat * X,par,I,odefun), t, X0, options);
+        if ~lumping
+            [tout, Xout] = ode15s(@(t,X) odefunModel(X,par,I,odefun), t, X0, options);
+        else
+            [tout, Xout] = ode15s(@(t,X) lumpmat * odefunModel(invlumpmat * X,par,I,odefun), t, X0, options);
+        end
     end
     log = [log 'non-pss solving successfull; '];
 else
