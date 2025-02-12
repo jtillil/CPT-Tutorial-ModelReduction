@@ -172,7 +172,7 @@ dX = odefunModel(X,par,I,model.odefun);
 W_matrix = reshape(W,I.nstates,I.nstates);
 
 %%% ODE of Wronski matrix W'(t,s)=df/dx*W(t,s);
-if isempty(model.jacfun)
+if isempty(model.jacfun) || lumping
     % determinue finite difference approximation
     dW_matrix = numjacfun(t,X,model) * W_matrix;
 else
