@@ -26,18 +26,18 @@ fprintf('\n Calculate ir, contr & obs indices \n');
 I = model.I;
 
 % check, whether classification of states is supported
-if ~isempty(setxor(I.dyn,1:I.nstates))
-    fprintf('\n\n --> ir indices are only computed for models with all states characterised as dynamic; PLEASE FIX! \n\n'); beep; 
-    return;
-end
+% if ~isempty(setxor(I.dyn,1:I.nstates))
+%     fprintf('\n\n --> ir indices are only computed for models with all states characterised as dynamic; PLEASE FIX! \n\n'); beep; 
+%     return;
+% end
 
 % ODE solver options and right hand side of ODE
-options.NonNegative = 1:I.nstates;
+odeoptions.NonNegative = 1:I.nstates;
 % options.AbsTol = [];
 % options.RelTol = 1e-2;
 % if jacobian specified, also give pattern of jacobian of extODE
 if ~isempty(model.jacfun)
-    options.JPattern = extodejacpatfun(model);
+    odeoptions.JPattern = extodejacpatfun(model);
 end
 
 % time vectors
@@ -69,12 +69,12 @@ extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
 % solving the extended ODE system to obtain J_u(0,t*), including reshaping
 % the output to obtain Jacobian in matrix form (see above)
 % [~,extX_ref]  = ode45(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
-[~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
+% [~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
 % [~,extX_ref]  = ode23s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
 
 simoptions.ir_indices = 1;
 
-[~,extX_ref,~,~] = simModel(t_ref, extX0, model.par, model.I, model.param, model.multiple, extodefun, model.jacfun, simoptions, odeoptions);
+[~,extX_ref,log,~] = simModel(t_ref, extX0, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions, odeoptions);
 
 % decompose extended state vector into states and Wronski matrix; initial
 % 'e' indicates that X_ref and eX_ref can be expected to differ due to the
@@ -107,9 +107,11 @@ for ts = 1:(ntstar-1)
     % in matrix form (see above) 
     tstarspan  = t_ref(ts:end);
     extX0_tstar = [eX_ref(ts,:)';W0(:)];
-    [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+    % [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
     % [t_tstar,extX_tstar]  = ode23s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
     % [t_tstar,extX_tstar]  = ode45(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
+
+    [t_tstar,extX_tstar,~,~] = simModel(tstarspan, extX0_tstar, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions, odeoptions);
 
     W_tstar = extX_tstar(:,I.nstates+1:end);
     
@@ -137,7 +139,7 @@ end
 elapsedtime = toc; fprintf('\n [elapsed time = %.1f]\n\n',elapsedtime);
 
 %%% compute normalized ir index
-ir.nindex = diag(1./sum(ir.index,2,'omitnan')) * ir.index;
+ir.nindex = ir.index ./ repmat(sum(ir.index, 2, 'omitnan'), [1, model.I.nstates]);
 
 % if saveresults
 %     fprintf('  \n results saved in %s \n',[model.savenameroot 'ir/contr/obs_index.mat']);
@@ -156,17 +158,18 @@ end
 %%% -----------------------------------------------------------------------
 %%% extended ODE system to solve the sensitivity equations
 %%%
-function dextX = extodefun(t,extX,par,model)
+% function dextX = extodefun(t,extX,par,model)
+function dextX = extodefun(extX,par,I,odefun)
 
 %%% assign model indexing
-I  = model.I;
+% I  = model.I;
 
 % decompose extended state vector into states and Wronski matrix
 X = extX(1:I.nstates);
 W = extX(I.nstates+1:end);
 
 % dX = model.odefun(X,par);
-dX = odefunModel(X,par,I,model.odefun);
+dX = odefunModel(X,par,I,odefun);
 
 %%% calculate wronski matrix
 W_matrix = reshape(W,I.nstates,I.nstates);
@@ -180,7 +183,7 @@ else
     dW_matrix = model.jacfun(X,par) * W_matrix;
 end
 
-dW_matrix = dF * W_matrix;
+% dW_matrix = dF * W_matrix;
 
 dextX = [dX;dW_matrix(:)];
 end

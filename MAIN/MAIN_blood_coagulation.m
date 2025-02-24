@@ -6,9 +6,13 @@ reduced_errors = struct;
 %% Calculate ir matlabfun
 
 % load model
-load("modelBC_SV40_from_JKn_2024.mat")
-
-[ir, contr, obs] = compute_ir_indices_matlabfun(model,false);
+% load("modelBC_SV40_from_JKn_2024.mat")
+% config = repmat("dyn", [1, model.I.nstates]);
+% model.I = config2I(model.I, config, []);
+% 
+% [ir, contr, obs] = compute_ir_indices_matlabfun(model);
+% 
+% plot(model.t_ref, ir.nindex(:, model.I.output))
 
 %% Reduce model index analysis
 
