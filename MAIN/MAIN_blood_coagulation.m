@@ -77,6 +77,28 @@ disp(sum(config == "cneg"))
 model.I = config2I(model.I, config, []);
 [irred.ir, irred.contr, irred.obs, irred.t_ir] = compute_ir_indices_matlabfun(model);
 
+% save indices
+save("results_irred_BC_40h_JKn_t005.mat", "irred")
+
+% nir-indices
+size = 12;
+lw = 1;
+lwt = 0.5;
+
+figure
+plot(irred.t_ir, irred.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+yline(0.1, 'k--', 'LineWidth', lwt)
+% xlim([-0.14 4.15])
+xlim([-0.01 1])
+ylim([-0.01 1])
+legend([model.analysis.ir.nmstates_above_nindex_threshold; 'threshold'], 'Location','east')
+xlabel("t [h]")
+ylabel("nir-index")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_JKn_ir_index_red_0_1.pdf")
+
 %% save reduced solution plot
 size = 12;
 lw = 1;
