@@ -43,7 +43,7 @@ end
 % time vectors
 t_ref = model.t_ref;
 t_end = t_ref(end);
-t_ref = t_ref(1:20:end);
+t_ref = t_ref(1:1:end);
 if t_ref(end) ~= t_end
     t_ref(end+1) = t_end;
 end
@@ -176,34 +176,34 @@ end
 %%% extended ODE system to solve the sensitivity equations
 %%%
 % function dextX = extodefun(t,extX,par,model)
-function dextX = extodefun(extX,par,I,odefun)
-
-%%% assign model indexing
-% I  = model.I;
-
-% decompose extended state vector into states and Wronski matrix
-X = extX(1:I.nstates);
-W = extX(I.nstates+1:end);
-
-% dX = model.odefun(X,par);
-dX = odefunModel(X,par,I,odefun);
-
-%%% calculate wronski matrix
-W_matrix = reshape(W,I.nstates,I.nstates);
-
-%%% ODE of Wronski matrix W'(t,s)=df/dx*W(t,s);
-if isempty(model.jacfun) || lumping
-    % determinue finite difference approximation
-    dW_matrix = numjacfun(t,X,model) * W_matrix;
-else
-    % use analytical jacobian
-    dW_matrix = model.jacfun(X,par) * W_matrix;
-end
-
-% dW_matrix = dF * W_matrix;
-
-dextX = [dX;dW_matrix(:)];
-end
+% function dextX = extodefun(extX,par,I,odefun)
+% 
+% %%% assign model indexing
+% % I  = model.I;
+% 
+% % decompose extended state vector into states and Wronski matrix
+% X = extX(1:I.nstates);
+% W = extX(I.nstates+1:end);
+% 
+% % dX = model.odefun(X,par);
+% dX = odefunModel(X,par,I,odefun);
+% 
+% %%% calculate wronski matrix
+% W_matrix = reshape(W,I.nstates,I.nstates);
+% 
+% %%% ODE of Wronski matrix W'(t,s)=df/dx*W(t,s);
+% if isempty(model.jacfun) || lumping
+%     % determinue finite difference approximation
+%     dW_matrix = numjacfun(t,X,model) * W_matrix;
+% else
+%     % use analytical jacobian
+%     dW_matrix = model.jacfun(X,par) * W_matrix;
+% end
+% 
+% % dW_matrix = dF * W_matrix;
+% 
+% dextX = [dX;dW_matrix(:)];
+% end
 
 %%% -----------------------------------------------------------------------
 %%% provide numerical approximation of the jacobian, if no analytical
