@@ -16,7 +16,7 @@
 %%% Authors: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function [ir, contr, obs] = compute_ir_indices_matlabfun(model)
+function [ir, contr, obs, t_ref] = compute_ir_indices_matlabfun(model)
 
 tic;
 fprintf('This is "compute ir indices" supporting matlabfun, reduced models, and lumping \n');
@@ -41,7 +41,16 @@ if ~isempty(model.jacfun)
 end
 
 % time vectors
-t_ref  = model.t_ref; X_ref = model.X_ref;
+t_ref = model.t_ref;
+t_end = t_ref(end);
+t_ref = t_ref(1:20:end);
+if t_ref(end) ~= t_end
+    t_ref(end+1) = t_end;
+end
+t_ref(end) = t_end - 1/100000 * (t_end - t_ref(1));
+t_ref(end+1) = t_end - 1/200000 * (t_end - t_ref(1));
+t_ref(end+1) = t_end;
+X_ref = model.X_ref;
 ntstar = length(t_ref); % number (n) of tstar values
 
 % Initialise variables necessary for analysis
@@ -122,7 +131,7 @@ for ts = 1:(ntstar-1)
     % for the observability index via the trapezoidal rule
     if length(t_tstar) == length(tstarspan)
         for k = relevantstates
-            obs.index(ts,k)   = sqrt( 1/t_ref(end) * trapz(t_tstar, Jac_y(I.output,k,:).^2) );
+            obs.index(ts,k)   = sqrt( 1/(t_ref(end) - t_ref(1)) * trapz(t_tstar, Jac_y(I.output,k,:).^2) );
             contr.index(ts,k) = abs( Jac_u(k,I.input,ts) );
             ir.index(ts,k)    = contr.index(ts,k) * obs.index(ts,k);
         end
@@ -137,6 +146,14 @@ for ts = 1:(ntstar-1)
     
 end
 elapsedtime = toc; fprintf('\n [elapsed time = %.1f]\n\n',elapsedtime);
+
+%%% cut indices for output
+obs.index = obs.index(1:(end-2), :);
+contr.index = contr.index(1:(end-2), :);
+ir.index = ir.index(1:(end-2), :);
+
+%%% set t_ref for output
+t_ref = [t_ref(1:(ntstar - 3)); t_end];
 
 %%% compute normalized ir index
 ir.nindex = ir.index ./ repmat(sum(ir.index, 2, 'omitnan'), [1, model.I.nstates]);

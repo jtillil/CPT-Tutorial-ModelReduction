@@ -75,7 +75,7 @@ disp(sum(config == "cneg"))
 
 % calculate reduced model ir indices
 model.I = config2I(model.I, config, []);
-[irred.ir, irred.contr, irred.obs] = compute_ir_indices_matlabfun(model);
+[irred.ir, irred.contr, irred.obs, irred.t_ir] = compute_ir_indices_matlabfun(model);
 
 %% save reduced solution plot
 size = 12;

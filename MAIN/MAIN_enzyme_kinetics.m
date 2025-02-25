@@ -118,6 +118,15 @@ config(model.I.E) = "env";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.C_pss_E_env(1,1) = obj.errout;
 
+%% Scenario 1 - C pss E env ir-indices
+load("modelMMEK_Cpss_Eenv_full.mat")
+model.multiple.multiple = 0;
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.C) = "pss";
+% config(model.I.E) = "env";
+model.I = config2I(model.I, config, []);
+[irred.ir, irred.contr, irred.obs] = compute_ir_indices_matlabfun(model);
+
 %% Scenario 2
 % load model file
 load("modelMMEK_Cpss_EpCenv_full.mat")

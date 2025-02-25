@@ -11,40 +11,40 @@ config = repmat("dyn", [1 model.I.nstates]);
 model.I = config2I(model.I, config, model.L);
 
 % lumping merge both pathways 3 (B), 4 (C)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(3, model.I.B) = 1;
-lumpmat(3, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_B_C(1,1) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(3, model.I.B) = 1;
+options.lumpmat(3, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_B_C(1,1) = calculate_lumping_error(model, options);
 
 % lumping no crosstalk 4 (C), 5 (D)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(3, model.I.B) = 1;
-lumpmat(4, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_C_D(1,1) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(3, model.I.B) = 1;
+options.lumpmat(4, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_C_D(1,1) = calculate_lumping_error(model, options);
 
 % lumping with crosstalk 2 (S), 3 (B)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(2, model.I.B) = 1;
-lumpmat(3, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_S_B(1,1) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(2, model.I.B) = 1;
+options.lumpmat(3, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_S_B(1,1) = calculate_lumping_error(model, options);
 
 % lumping try S C 2 (S), 4 (C)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(3, model.I.B) = 1;
-lumpmat(2, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_S_C(1,1) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(3, model.I.B) = 1;
+options.lumpmat(2, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_S_C(1,1) = calculate_lumping_error(model, options);
 
 % A env
 config = repmat("dyn", [1 model.I.nstates]);
@@ -94,6 +94,34 @@ config(model.I.B) = "ssenv";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_ssenv(1,1) = obj.errout;
 
+%% Scenario 1 - no crosstalk C pss ir-indices
+load("modelSPP_no_crosstalk_full.mat")
+model.multiple.multiple = 0;
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.C) = "pss";
+% config(model.I.E) = "env";
+model.I = config2I(model.I, config, []);
+[irred.ir, irred.contr, irred.obs, irred.t_ir] = compute_ir_indices_matlabfun(model);
+
+size = 8;
+lw = 1;
+lwt = 0.5;
+
+% nir-indices
+figure
+% plot(model.t_ref, irred.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+plot(irred.t_ir, irred.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-0.002 0.052])
+ylim([-0.01 1])
+legend('A', 'S', 'B', 'C', 'D', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("nir-index")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/SPP_no_crosstalk_ir_C_pss.pdf")
+
 %% Scenario 2 - with crosstalk
 % load model file
 load("modelSPP_with_crosstalk_full.mat")
@@ -102,40 +130,40 @@ config = repmat("dyn", [1 model.I.nstates]);
 model.I = config2I(model.I, config, model.L);
 
 % lumping merge both pathways 3 (B), 4 (C)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(3, model.I.B) = 1;
-lumpmat(3, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_B_C(1,2) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(3, model.I.B) = 1;
+options.lumpmat(3, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_B_C(1,2) = calculate_lumping_error(model, options);
 
 % lumping no crosstalk 4 (C), 5 (D)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(3, model.I.B) = 1;
-lumpmat(4, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_C_D(1,2) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(3, model.I.B) = 1;
+options.lumpmat(4, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_C_D(1,2) = calculate_lumping_error(model, options);
 
 % lumping with crosstalk 2 (S), 3 (B)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(2, model.I.B) = 1;
-lumpmat(3, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_S_B(1,2) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(2, model.I.B) = 1;
+options.lumpmat(3, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_S_B(1,2) = calculate_lumping_error(model, options);
 
 % lumping try S C 2 (S), 4 (C)
-lumpmat = zeros(4, 5);
-lumpmat(1, model.I.A) = 1;
-lumpmat(2, model.I.S) = 1;
-lumpmat(3, model.I.B) = 1;
-lumpmat(2, model.I.C) = 1;
-lumpmat(4, model.I.D) = 1;
-reduced_errors.lumping_S_C(1,2) = calculate_lumping_error(model, lumpmat);
+options.lumpmat = zeros(4, 5);
+options.lumpmat(1, model.I.A) = 1;
+options.lumpmat(2, model.I.S) = 1;
+options.lumpmat(3, model.I.B) = 1;
+options.lumpmat(2, model.I.C) = 1;
+options.lumpmat(4, model.I.D) = 1;
+reduced_errors.lumping_S_C(1,2) = calculate_lumping_error(model, options);
 
 % A env
 config = repmat("dyn", [1 model.I.nstates]);
