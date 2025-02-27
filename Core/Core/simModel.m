@@ -27,6 +27,13 @@ if exist("odeoptions", "var")
     options = odeoptions;
 end
 
+% check if reduced model provided
+if length(I.dyn) < I.nstates % if not all states dynamic
+    model_reduced = 1;
+else
+    model_reduced = 0;
+end
+
 % handle lumping [pre and post], ir-index solving
 if exist("simoptions", "var")
     if isfield(simoptions, 'prelumpmat')
@@ -114,11 +121,6 @@ if ~isempty(I.cneg)
     par([I_par{:}]) = 0;
 end
 
-% add jacobian, if provided
-if ~isempty(jacfun) && ~prelumping && ~ir_indices
-    options.Jacobian = @(t,X) jacfunModel(X,par,I,jacfun);
-end
-
 % check consistency of states that are part of I.replaceODE
 %
 % if a state (say the k-th one) is part of I.replaceODE, then its
@@ -155,6 +157,11 @@ end
 
 %% (2) specify options
 
+% add jacobian, if provided
+if ~isempty(jacfun) && ~prelumping && ~ir_indices
+    options.Jacobian = @(t,X) jacfunModel(X,par,I,jacfun);
+end
+
 % specify options
 if isempty([I.pss])
     % default, unless changed below
@@ -183,10 +190,13 @@ else
         options.Mass = M;
         options.MassSingular = 'yes';
     else
-        M = eye(I.nstates + (I.nstates)^2);
+        M = eye(I.nstates);
         M(I.pss,I.pss) = 0;
-        options.Mass = M;
+        options.Mass = blkdiag(M, kron(M, eye(I.nstates)));
         options.MassSingular = 'yes';
+
+        options.Jacobian = [];
+        options.Jpattern = extodejacpatfun(I, par, jacfun);
     end
         % error('pss states not yet implemented for prelumping')
     % end
@@ -415,9 +425,72 @@ else
 end
 
 % dF([I.pss I.env I.pneg I.cneg I.irenv_arith, I.irenv_geom I.average I.mode I.constant I.ssenv I.constregr], :) = 0;
-dF([I.env I.pneg I.cneg I.irenv_arith, I.irenv_geom I.average I.mode I.constant I.ssenv I.constregr], :) = 0;
+% dF([I.env I.pneg I.cneg I.irenv_arith, I.irenv_geom I.average I.mode I.constant I.ssenv I.constregr], :) = 0;
 
 dW_matrix = dF * W_matrix;
 
 dextX = [dX;dW_matrix(:)];
 end
+
+%%% -----------------------------------------------------------------------
+%%% provide numerical approximation of the jacobian, if no analytical
+%%% function is provided
+%%%
+function jac = numjacfun(t,X,odefun)
+
+% set relevant parameters for numerical calculation of jacobian
+eps = 1e-9;
+h0  = sqrt(eps);
+n   = length(X);
+jac = zeros(n);
+E   = eye(n);
+% calculate either two sided or one sided numerical jacobian
+for k=1:n
+    h = max(1,abs(X(k)))*h0;
+    if (X(k)-h)>0
+        jac(:,k) = (model.odefun(X+h*E(k,:)',model.par)-model.odefun(X-h*E(k,:)',model.par))/(2*h);
+    else
+        jac(:,k) = (model.odefun(X+h*E(k,:)',model.par)-model.odefun(X,model.par))/(h);
+    end
+end
+
+end
+
+%%% -----------------------------------------------------------------------
+%%% defines the jacobian sparsity pattern of the extended ODE system 
+%%% (only used if no jacobian is provided)
+%%%
+% function extodejacpat = extodejacpatfun(model)
+function extodejacpat = extodejacpatfun(I, par, jacfun)
+
+% number of state variables
+nstates = I.nstates;
+
+% initialise output
+extodejacpat = zeros(nstates+nstates^2);
+
+% initialize the jacobian 
+X_test = ones(nstates,1); % ok for this jacobian
+DF = jacfun(X_test,par);
+
+% check if there are NaN or Inf entries
+if any(isinf(DF),'all') || any(isnan(DF),'all')
+    error('--> There is an issue with the Jacobian: it contains ''inf'' or ''NaN'' entries :-( Please fix.')
+end
+
+% determine pattern of non-zero entries and assign it
+odejacpat = DF;
+odejacpat(odejacpat~=0) = 1;   
+
+extodejacpat(1:nstates,1:nstates) = odejacpat;
+
+% determine pattern of jacobian of Wronski part
+for i=1:nstates
+    extodejacpat(i*nstates+1:(i+1)*nstates, i*nstates+1:(i+1)*nstates) = odejacpat;
+    extodejacpat(i*nstates+1:i*nstates+nstates, 1:nstates) = ones(nstates,nstates);
+end
+
+extodejacpat = sparse(extodejacpat);
+end
+
+

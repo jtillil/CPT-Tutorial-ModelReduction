@@ -32,13 +32,13 @@ I = model.I;
 % end
 
 % ODE solver options and right hand side of ODE
-odeoptions.NonNegative = 1:I.nstates;
+% odeoptions.NonNegative = 1:I.nstates;
 % options.AbsTol = [];
 % options.RelTol = 1e-2;
 % if jacobian specified, also give pattern of jacobian of extODE
-if ~isempty(model.jacfun)
-    odeoptions.JPattern = extodejacpatfun(model);
-end
+% if ~isempty(model.jacfun)
+%     odeoptions.JPattern = extodejacpatfun(model);
+% end
 
 % time vectors
 t_ref = model.t_ref;
@@ -73,6 +73,10 @@ if inform, fprintf(' Progress report: solve extODE ... '); end
 
 X0 = X_ref(1,:);        % initial condition of ODE system
 W0 = eye(I.nstates);    % initial condition of Wronski matrix equation
+% non_changing_states = [I.env I.pneg I.cneg I.irenv_arith, I.irenv_geom I.average I.mode I.constant I.ssenv I.constregr];
+% for k = non_changing_states
+%     W0(k, k) = 0;
+% end
 extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
 
 % solving the extended ODE system to obtain J_u(0,t*), including reshaping
@@ -83,7 +87,7 @@ extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
 
 simoptions.ir_indices = 1;
 
-[~,extX_ref,log,~] = simModel(t_ref, extX0, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions, odeoptions);
+[~,extX_ref,log,~] = simModel(t_ref, extX0, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions);
 
 % decompose extended state vector into states and Wronski matrix; initial
 % 'e' indicates that X_ref and eX_ref can be expected to differ due to the
@@ -120,7 +124,7 @@ for ts = 1:(ntstar-1)
     % [t_tstar,extX_tstar]  = ode23s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
     % [t_tstar,extX_tstar]  = ode45(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
 
-    [t_tstar,extX_tstar,~,~] = simModel(tstarspan, extX0_tstar, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions, odeoptions);
+    [t_tstar,extX_tstar,~,~] = simModel(tstarspan, extX0_tstar, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions);
 
     W_tstar = extX_tstar(:,I.nstates+1:end);
     
@@ -209,60 +213,59 @@ end
 %%% provide numerical approximation of the jacobian, if no analytical
 %%% function is provided
 %%%
-function jac = numjacfun(t,X,model)
-
-% set relevant parameters for numerical calculation of jacobian
-eps = 1e-9;
-h0  = sqrt(eps);
-n   = length(X);
-jac = zeros(n);
-E   = eye(n);
-% calculate either two sided or one sided numerical jacobian
-for k=1:n
-    h = max(1,abs(X(k)))*h0;
-    if (X(k)-h)>0
-        jac(:,k) = (model.odefun(X+h*E(k,:)',model.par)-model.odefun(X-h*E(k,:)',model.par))/(2*h);
-    else
-        jac(:,k) = (model.odefun(X+h*E(k,:)',model.par)-model.odefun(X,model.par))/(h);
-    end
-end
-
-end
+% function jac = numjacfun(t,X,model)
+% 
+% % set relevant parameters for numerical calculation of jacobian
+% eps = 1e-9;
+% h0  = sqrt(eps);
+% n   = length(X);
+% jac = zeros(n);
+% E   = eye(n);
+% % calculate either two sided or one sided numerical jacobian
+% for k=1:n
+%     h = max(1,abs(X(k)))*h0;
+%     if (X(k)-h)>0
+%         jac(:,k) = (model.odefun(X+h*E(k,:)',model.par)-model.odefun(X-h*E(k,:)',model.par))/(2*h);
+%     else
+%         jac(:,k) = (model.odefun(X+h*E(k,:)',model.par)-model.odefun(X,model.par))/(h);
+%     end
+% end
+% 
+% end
 
 %%% -----------------------------------------------------------------------
 %%% defines the jacobian sparsity pattern of the extended ODE system 
 %%% (only used if no jacobian is provided)
 %%%
-function extodejacpat = extodejacpatfun(model)
-
-% number of state variables
-nstates = model.I.nstates;
-
-% initialise output
-extodejacpat = zeros(nstates+nstates^2);
-
-% initialize the jacobian 
-X_test = ones(model.I.nstates,1); % ok for this jacobian
-DF = model.jacfun(X_test,model.par);
-
-% check if there are NaN or Inf entries
-if any(isinf(DF),'all') || any(isnan(DF),'all')
-    error('--> There is an issue with the Jacobian: it contains ''inf'' or ''NaN'' entries :-( Please fix.')
-end
-
-% determine pattern of non-zero entries and assign it
-odejacpat = DF;
-odejacpat(odejacpat~=0) = 1;   
-
-extodejacpat(1:nstates,1:nstates) = odejacpat;
-
-% determine pattern of jacobian of Wronski part
-for i=1:nstates
-    extodejacpat(i*nstates+1:(i+1)*nstates, i*nstates+1:(i+1)*nstates) = odejacpat;
-    extodejacpat(i*nstates+1:i*nstates+nstates, 1:nstates) = ones(nstates,nstates);
-end
-
-extodejacpat = sparse(extodejacpat);
-end
-
+% function extodejacpat = extodejacpatfun(model)
+% 
+% % number of state variables
+% nstates = model.I.nstates;
+% 
+% % initialise output
+% extodejacpat = zeros(nstates+nstates^2);
+% 
+% % initialize the jacobian 
+% X_test = ones(model.I.nstates,1); % ok for this jacobian
+% DF = model.jacfun(X_test,model.par);
+% 
+% % check if there are NaN or Inf entries
+% if any(isinf(DF),'all') || any(isnan(DF),'all')
+%     error('--> There is an issue with the Jacobian: it contains ''inf'' or ''NaN'' entries :-( Please fix.')
+% end
+% 
+% % determine pattern of non-zero entries and assign it
+% odejacpat = DF;
+% odejacpat(odejacpat~=0) = 1;   
+% 
+% extodejacpat(1:nstates,1:nstates) = odejacpat;
+% 
+% % determine pattern of jacobian of Wronski part
+% for i=1:nstates
+%     extodejacpat(i*nstates+1:(i+1)*nstates, i*nstates+1:(i+1)*nstates) = odejacpat;
+%     extodejacpat(i*nstates+1:i*nstates+nstates, 1:nstates) = ones(nstates,nstates);
+% end
+% 
+% extodejacpat = sparse(extodejacpat);
+% end
 

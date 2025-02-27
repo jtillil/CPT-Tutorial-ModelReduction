@@ -122,6 +122,34 @@ reduced_errors.C_pss_E_env(1,1) = obj.errout;
 load("modelMMEK_Cpss_Eenv_full.mat")
 model.multiple.multiple = 0;
 config = repmat("dyn", [1 model.I.nstates]);
+% config(model.I.C) = "pss";
+% config(model.I.E) = "env";
+model.I = config2I(model.I, config, []);
+[irred.ir, irred.contr, irred.obs, irred.t_ir] = compute_ir_indices_matlabfun(model);
+
+size = 8;
+lw = 1;
+lwt = 0.5;
+
+% nir-indices
+figure
+% plot(model.t_ref, irred.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+plot(irred.t_ir, irred.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-1 31])
+ylim([-0.01 1])
+legend('A', 'S', 'E', 'C', 'P', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("nir-index")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_ir.pdf")
+
+%%%% new
+load("modelMMEK_Cpss_Eenv_full.mat")
+model.multiple.multiple = 0;
+config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "pss";
 % config(model.I.E) = "env";
 model.I = config2I(model.I, config, []);
@@ -147,10 +175,40 @@ set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width
 exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_ir_C_pss.pdf")
 
 %% Scenario 2 - C pss E pCenv ir-indices
+
+%%%% full model
 load("modelMMEK_Cpss_EpCenv_full.mat")
 model.multiple.multiple = 0;
 config = repmat("dyn", [1 model.I.nstates]);
 % config(model.I.C) = "pss";
+% config(model.I.A) = "env";
+model.I = config2I(model.I, config, []);
+[irred.ir, irred.contr, irred.obs, irred.t_ir] = compute_ir_indices_matlabfun(model);
+
+size = 8;
+lw = 1;
+lwt = 0.5;
+
+% nir-indices
+figure
+% plot(model.t_ref, irred.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+plot(irred.t_ir, irred.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-1 31])
+ylim([-0.01 1])
+legend('A', 'S', 'E', 'C', 'P', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("nir-index")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_ir.pdf")
+
+%%%% C in pss
+load("modelMMEK_Cpss_EpCenv_full.mat")
+model.multiple.multiple = 0;
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.C) = "pss";
 % config(model.I.A) = "env";
 model.I = config2I(model.I, config, []);
 [irred.ir, irred.contr, irred.obs, irred.t_ir] = compute_ir_indices_matlabfun(model);
