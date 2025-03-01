@@ -10,7 +10,17 @@ num_par = 0;
 % config_red = redmodel.exhaustive_mor.configs(conf_idx, :);
 % I_red = config2I(model.I, config_red, model.L);
 
-[tred, X_red, log] = simModel(model.t_ref, model.X0, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun);
+lumping = 1;
+
+if lumping
+    simoptions.prelumpmat = lumpmat;
+    config = repmat("dyn", [model.I.nstates, 1]);
+    model.I = config2I(model.I, config, []);
+else
+    simoptions = struct;
+end
+
+[tred, X_red, log] = simModel(model.t_ref, model.X0, model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions);
 
 ndyn = sum(config == "dyn");
 npneg = sum(config == "pneg");
@@ -35,25 +45,25 @@ for i = 1:length(par)
         % 1/1000x
         par_change = model.par;
         par_change(i) = (1e-3)*par_change(i);
-        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun);
+        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions);
         rel_err = abs(X_out(ntstart:end, :) - X_red(ntstart:end, :)) ./ X_red(ntstart:end, :);
         max_rel_err_div1e3 = max(rel_err(~isinf(rel_err)), [], 'all');
         % half
         par_change = model.par;
         par_change(i) = 0.5*par_change(i);
-        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun);
+        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions);
         rel_err = abs(X_out(ntstart:end, :) - X_red(ntstart:end, :)) ./ X_red(ntstart:end, :);
         max_rel_err_half = max(rel_err(~isinf(rel_err)), [], 'all');
         % double
         par_change = model.par;
         par_change(i) = 2*par_change(i);
-        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun);
+        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions);
         rel_err = abs(X_out(ntstart:end, :) - X_red(ntstart:end, :)) ./ X_red(ntstart:end, :);
         max_rel_err_double = max(rel_err(~isinf(rel_err)), [], 'all');
         % 1000x
         par_change = model.par;
         par_change(i) = (1e3)*par_change(i);
-        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun);
+        [tout, X_out, log] = simModel(model.t_ref, model.X0, par_change, model.I, model.param, model.multiple, model.odefun, model.jacfun, simoptions);
         rel_err = abs(X_out(ntstart:end, :) - X_red(ntstart:end, :)) ./ X_red(ntstart:end, :);
         max_rel_err_mul1e3 = max(rel_err(~isinf(rel_err)), [], 'all');
         if max([max_rel_err_half, max_rel_err_double, max_rel_err_div1e3, max_rel_err_mul1e3]) >= 1e-16
