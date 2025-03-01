@@ -99,6 +99,33 @@ set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width
 
 exportgraphics(gcf, "./figures/BC_SV40_JKn_ir_index_red_0_1.pdf")
 
+
+%% Blood Coagulation 40h: lumping Aarons
+load("modelBC_SV40_from_JKn_2024.mat")
+
+[lump_matrices,inv_lump_matrices,errors,out_states] = lumping_Aarons(model);
+
+save("lumpingres_BC_SV40_from_JKn.mat", "out_states", "errors", "inv_lump_matrices", "lump_matrices")
+
+%% analyze lumping
+idx = 1:length(errors);
+idx = idx(errors < 0.05);
+idx = idx(end);
+
+lumpmat = lump_matrices{idx};
+
+for k = 1:size(lumpmat, 1)
+    if sum(lumpmat(k, :)) == 1
+        disp(k)
+        disp(model.I.nmstate{logical(lumpmat(k, :))})
+    end
+end
+
+disp(model.I.nmstate{logical(lumpmat(out_states(idx), :))})
+% disp(model.I.nmstate{logical(lumpmat(out_states(idx), :))})
+
+disp(errors(idx))
+
 %% save reduced solution plot
 size = 12;
 lw = 1;
