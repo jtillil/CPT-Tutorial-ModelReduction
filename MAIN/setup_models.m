@@ -1,4 +1,5 @@
 %% Setup
+clear; clc;
 addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 
 config.ir       = true;
@@ -54,7 +55,12 @@ model.pss = load("Wajima2009BloodCoagulation_in_vivo_snakevenom_40h_pss_index.ma
 model.threshold = 0.1;
 model.analysis = analyse_all_indices(model);
 
-save("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat", "model")
+save("../Core/modelfiles/modelBC_SV40_from_JKn_2024_t0_1.mat", "model")
+
+model.threshold = 0.05;
+model.analysis = analyse_all_indices(model);
+
+save("../Core/modelfiles/modelBC_SV40_from_JKn_2024_t0_05.mat", "model")
 
 model.threshold = 0.01;
 model.analysis = analyse_all_indices(model);
