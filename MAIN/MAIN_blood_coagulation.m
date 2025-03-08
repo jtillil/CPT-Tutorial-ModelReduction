@@ -23,14 +23,32 @@ load("modelBC_SV40_from_JKn_2024.mat")
 config = repmat("dyn", [1, model.I.nstates]);
 t = 0.05;
 
+errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
+
 % assign config based on index analysis results
 for i = 1:model.I.nstates
 neg = 0;
 ir = max(model.ir.nindex(:, i));
 env = max(model.env.nindex(:, i));
+
 envrel = max(model.env.relstateerr(:, i));
+% calc_config = repmat("dyn", [1, model.I.nstates]);
+% calc_config(i) = "env";
+% calc_I = config2I(model.I, calc_config, []);
+% [~, X_red, ~, ~] = simModel(model.t_ref, model.X0, model.par, calc_I, model.param, model.multiple, model.odefun, model.jacfun);
+% envrel = errfun(model.t_ref, model.X_ref, X_red);
+% envrel = envrel(i);
+
 pss = max(model.pss.nindex(:, i));
+
 pssrel = max(model.pss.relstateerr(:, i));
+% calc_config = repmat("dyn", [1, model.I.nstates]);
+% calc_config(i) = "pss";
+% calc_I = config2I(model.I, calc_config, []);
+% [~, X_red, ~, ~] = simModel(model.t_ref, model.X0, model.par, calc_I, model.param, model.multiple, model.odefun, model.jacfun);
+% pssrel = errfun(model.t_ref, model.X_ref, X_red);
+% pssrel = pssrel(i);
+
 cneg = max(model.cneg.nindex(:, i));
 pneg = max(model.pneg.nindex(:, i));
 if ir <  t
@@ -72,6 +90,79 @@ disp(sum(config == "env"))
 disp(sum(config == "pss"))
 disp(sum(config == "pneg"))
 disp(sum(config == "cneg"))
+
+%% further optimize reduced model
+
+model.L = [];
+
+modelname = 'BCSV40_from_JKn';
+
+mode = 'from_start';
+eout = 0.05;
+eint = 10;
+pint = 100;
+timeout = 120;
+crit = 'linear';
+errtype = 'MRSE';
+firstrun = 0;
+pnegrun = 1;
+conlawrun = 0;
+% classifs = ["dyn" "cneg" "pneg" "env" "pss"];
+classifs = ["dyn" "cneg" "pneg" "env"];
+
+variability = 0;
+var_obj_prctile = 90;
+LHS_EOG = 0;
+backwards = 0;
+variability_input = 0;
+virtual_pop = [];
+X_ref_var = [];
+redmodel = [];
+
+log_required = 0;
+
+morexh_model(model, modelname, mode, eout, eint, pint, timeout, crit, errtype, firstrun, pnegrun, conlawrun, classifs, variability, var_obj_prctile, LHS_EOG, variability_input, virtual_pop, X_ref_var, backwards, redmodel, config, log_required)
+
+%% plot optimized model
+size = 12;
+lw = 1;
+lwt = 0.5;
+
+load("modelBC_SV40_from_JKn_2024.mat")
+
+% reference solution
+figure
+grid on
+semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+xlim([-2 42])
+ylim([1e-7 5e4])
+legend(model.analysis.ir.nmstates_above_nindex_threshold, 'Location', 'southeast')
+xlabel("t [h]")
+ylabel("concentration [g/L]")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_ref_sol.pdf")
+
+load("BCSV40_from_JKn_exh_t120_MRSE_pnegrun_0.05_10_linear_dyncnegpnegenvpss.mat")
+% I_red = config2I(redmodel.I, redmodel.redobj.redconfig, []);
+[~, X_red, ~, ~] = simModel(redmodel.t_ref, redmodel.X0, redmodel.par, redmodel.I, redmodel.param, redmodel.multiple, redmodel.odefun, redmodel.jacfun);
+
+% reference solution
+figure
+grid on
+semilogy(redmodel.t_ref, X_red(:, redmodel.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+xlim([-2 42])
+ylim([1e-7 5e4])
+legend(model.analysis.ir.nmstates_above_nindex_threshold, 'Location', 'southeast')
+xlabel("t [h]")
+ylabel("concentration [g/L]")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_redmodel_sol.pdf")
+
+%% indices for reduced model
 
 % calculate reduced model ir indices
 model.I = config2I(model.I, config, []);

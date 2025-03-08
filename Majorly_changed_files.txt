@@ -6,3 +6,8 @@ ode2matlabfun
 set_up_the_model
 Wajima2009BloodCoagulation_model_set_up_details (removed jacfun)
 simModel
+
+morexh_model
+morexh_repeated
+morexh_pneg_greedy
+morexh_pneg_sequential

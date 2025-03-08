@@ -33,8 +33,12 @@ mor_startTime = tic;
 I = model.I;
 
 % initiate first config
-exhaustive_mor.configs = repmat("dyn", 1, I.nstates);
-exhaustive_mor.configs(logical(model.state_unimportant)) = "pneg";
+if ~isempty(mor_options.config)
+    exhaustive_mor.configs = mor_options.config;
+else
+    exhaustive_mor.configs = repmat("dyn", 1, I.nstates);
+    exhaustive_mor.configs(logical(model.state_unimportant)) = "pneg";
+end
 lastconfig = exhaustive_mor.configs(1, :);
 
 % initiate exhaustive_mor

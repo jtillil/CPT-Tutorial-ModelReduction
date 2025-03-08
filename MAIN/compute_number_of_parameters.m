@@ -10,7 +10,7 @@ num_par = 0;
 % config_red = redmodel.exhaustive_mor.configs(conf_idx, :);
 % I_red = config2I(model.I, config_red, model.L);
 
-lumping = 1;
+lumping = 0;
 
 if lumping
     simoptions.prelumpmat = lumpmat;

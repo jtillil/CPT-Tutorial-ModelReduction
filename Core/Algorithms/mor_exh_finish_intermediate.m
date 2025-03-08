@@ -62,7 +62,7 @@ if mor_options.pnegrun
     %     [model, pnegconfig, log] = mor_exh_pneg(model, exhaustive_mor.redconfig);
     %     finalconfig = pnegconfig;
     % else
-        [model.pnegobj, model.pneg_run, pnegconfig] = mor_exh_pneg(model, exhaustive_mor.redconfig, mor_options, false);
+        [model.pnegobj, model.pneg_run, pnegconfig] = mor_exh_pneg_greedy(model, exhaustive_mor.redconfig, mor_options, false);
         finalconfig = pnegconfig;
     % end
 else
