@@ -1,3 +1,4 @@
+# miscellaneous files
 compute_ir_indices
 compute_non_ir_indices
 setupModel
@@ -7,7 +8,10 @@ set_up_the_model
 Wajima2009BloodCoagulation_model_set_up_details (removed jacfun)
 simModel
 
+# reduction algorithm
 morexh_model
 morexh_repeated
 morexh_pneg_greedy
 morexh_pneg_sequential
+
+# for symbolic implicit function theorem qss solving
