@@ -14,7 +14,7 @@ reduced_errors = struct;
 % 
 % plot(model.t_ref, ir.nindex(:, model.I.output))
 
-%% Reduce model index analysis
+%% Reduce model with index analysis
 
 % load model
 load("modelBC_SV40_from_JKn_2024.mat")
@@ -91,7 +91,25 @@ disp(sum(config == "pss"))
 disp(sum(config == "pneg"))
 disp(sum(config == "cneg"))
 
-%% further optimize reduced model
+%% pneg run of index-reduced model
+mor_options.err_out         = err_index.errout + 0.01;
+% mor_options.err_out         = 0.05;
+mor_options.err_int         = 10;
+mor_options.timeout         = 120;
+mor_options.criterion       = 'linear';
+mor_options.errtype         = 'MRSE';
+
+model.L = [];
+
+[model.pnegobj, model.pneg_run, model.pnegconfig, ~] = mor_exh_pneg_greedy(model, config, mor_options, false);
+
+disp(sum(model.pnegconfig == "dyn"))
+disp(sum(model.pnegconfig == "env"))
+disp(sum(model.pnegconfig == "pss"))
+disp(sum(model.pnegconfig == "pneg"))
+disp(sum(model.pnegconfig == "cneg"))
+
+%% further optimize index-reduced model
 
 model.L = [];
 
@@ -162,7 +180,52 @@ set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width
 
 exportgraphics(gcf, "./figures/BC_SV40_redmodel_sol.pdf")
 
-%% indices for reduced model
+%% indices for ir-reduced and optimized 8-state model
+
+% load model
+load("BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05_10_linear_dyncnegpnegenv.mat")
+redmodel.I = config2I(redmodel.I, redmodel.pneg_run.configs(end, :), []);
+
+[ir, contr, obs] = compute_ir_indices_matlabfun(redmodel);
+
+save("indices_irred_0.05_BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05_10_linear_dyncnegpnegenv.mat", "ir", "contr", "obs")
+
+%% plot
+size = 12;
+lw = 1;
+lwt = 0.5;
+
+% reference solution
+figure
+semilogy(redmodel.t_ref, redmodel.X_red(:, redmodel.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+xlim([-2 42])
+ylim([1e-7 5e4])
+legend(redmodel.analysis.ir.nmstates_above_nindex_threshold, 'Location', 'southeast')
+xlabel("t [h]")
+ylabel("concentration [g/L]")
+% grid on
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_indices_irred_0.05_BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05_10_linear_dyncnegpnegenv_ref_sol.pdf")
+
+% nir indices
+figure
+plot(redmodel.t_ref, ir.nindex(:, redmodel.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+yline(0.1, 'k--', 'LineWidth', lwt)
+% xlim([-0.14 4.15])
+xlim([-0.3 20])
+ylim([-0.01 1])
+legend([redmodel.analysis.ir.nmstates_above_nindex_threshold; 'threshold'], 'Location','east')
+xlabel("t [h]")
+ylabel("nir-index")
+% grid on
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_indices_irred_0.05_BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05_10_linear_dyncnegpnegenv_ir.pdf")
+
+%% indices for ir-reduced model
 
 % calculate reduced model ir indices
 model.I = config2I(model.I, config, []);

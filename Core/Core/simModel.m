@@ -425,7 +425,7 @@ else
 end
 
 % dF([I.pss I.env I.pneg I.cneg I.irenv_arith, I.irenv_geom I.average I.mode I.constant I.ssenv I.constregr], :) = 0;
-% dF([I.env I.pneg I.cneg I.irenv_arith, I.irenv_geom I.average I.mode I.constant I.ssenv I.constregr], :) = 0;
+dF([I.env I.pneg I.cneg I.irenv_arith, I.irenv_geom I.average I.mode I.constant I.ssenv I.constregr], :) = 0;
 
 dW_matrix = dF * W_matrix;
 

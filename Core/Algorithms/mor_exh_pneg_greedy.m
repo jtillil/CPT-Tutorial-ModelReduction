@@ -14,9 +14,11 @@ criterion = mor_options.criterion;
 errtype = mor_options.errtype;
 
 % LOG
-if log_required
+% if log_required
     log = 0;
-end
+% else
+%     log = 0;
+% end
 
 % indexing
 I = model.I;
