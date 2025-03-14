@@ -77,6 +77,27 @@ set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width
 
 exportgraphics(gcf, "./figures/SPP_no_crosstalk_non_ir_C.pdf")
 
+% non ir-indices S
+figure
+hold on
+semilogy(model.t_ref, model.env.nindex(:, model.I.S), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pss.nindex(:, model.I.S), 'LineStyle', '--', 'LineWidth', lw)
+semilogy(model.t_ref, model.cneg.nindex(:, model.I.S), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pneg.nindex(:, model.I.S), 'LineStyle', '--', 'LineWidth', lw)
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-0.002 0.052])
+ylim([5e-4 1e1])
+set(gca, 'YScale', 'log')
+box on
+legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("normalised index")
+% hold off
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/SPP_no_crosstalk_non_ir_S.pdf")
+
 %% Parallel Pathways: Scenario 2 - with crosstalk
 load("modelSPP_with_crosstalk_full.mat")
 
