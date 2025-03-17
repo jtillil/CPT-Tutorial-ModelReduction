@@ -1,7 +1,9 @@
 function [error, X_current] = calculate_lumping_error(model, options)
 %%% take a model and a lumping matrix to calculate the lumping error
-% options.lumpmat
-% options.invlumpmat
+options.prelumpmat = options.lumpmat;
+if isfield(options, 'invlumpmat')
+    options.preinvlumpmat = options.invlumpmat;
+end
 
 % par = model.par;
 % model.lumping.lumpmat = lump_matrix;
