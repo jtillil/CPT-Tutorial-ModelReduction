@@ -6,38 +6,94 @@ lw = 1;
 lwt = 0.5;
 
 %% Blood Coagulation: 40h Wajima 2009
-load("modelBC_SV40_full.mat")
+load("modelBC_SV40_from_JKn_2024.mat")
+model.I.nmstatelegend = cellfun(@(x) strrep(x, '_', ':'), model.I.nmstatelegend, 'UniformOutput', false);
 
 % reference solution
 figure
-grid on
-semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+hold on
+for i = 1:7
+    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
 xlim([-2 42])
 ylim([1e-7 5e4])
-legend(model.analysis.ir.nmstates_above_nindex_threshold, 'Location', 'southeast')
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'southeast')
 xlabel("t [h]")
-ylabel("concentration [g/L]")
-
+ylabel("concentration [nmol/L]")
+yscale('log')
+box on
 set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/BC_SV40_ref_sol.pdf")
 
+% reference solution 0 - 0.15 h
+figure
+hold on
+for i = 1:7
+    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+xlim([-0.005 0.155])
+ylim([1e-7 5e4])
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'southeast')
+xlabel("t [h]")
+ylabel("concentration [nmol/L]")
+yscale('log')
+box on
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_ref_sol_015h.pdf")
+
 % nir-indices
 figure
-plot(model.t_ref, model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold), 'LineWidth', lw) %DisplayName', plotnames(i))
+hold on
+for i = 1:7
+    plot(model.t_ref, model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    plot(model.t_ref, model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
 yline(0.1, 'k--', 'LineWidth', lwt)
 % xlim([-0.14 4.15])
-xlim([-0.3 20])
+xlim([-0.3 10.3])
 ylim([-0.01 1])
-legend([model.analysis.ir.nmstates_above_nindex_threshold; 'threshold'], 'Location','east')
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'east')
 xlabel("t [h]")
 ylabel("nir-index")
-
+box on
 set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/BC_SV40_ir.pdf")
 
-load("modelBC_SV40_t0_01.mat")
+% nir-indices 0 - 0.15 h
+figure
+hold on
+for i = 1:7
+    plot(model.t_ref, model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    plot(model.t_ref, model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+yline(0.1, 'k--', 'LineWidth', lwt)
+% xlim([-0.14 4.15])
+xlim([-0.005 0.155])
+ylim([-0.01 1])
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'north')
+xlabel("t [h]")
+ylabel("nir-index")
+box on
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_ir_015h.pdf")
+
+%% non-ir
+
+load("modelBC_SV40_from_JKn_2024_t0_01.mat")
 
 % non ir-indices
 for i = 1:length(model.analysis.ir.nmstates_above_nindex_threshold)
@@ -62,44 +118,3 @@ for i = 1:length(model.analysis.ir.nmstates_above_nindex_threshold)
 
     exportgraphics(gcf, ['./figures/BC_SV40_ir_' state '.pdf'])
 end
-
-%% new ir indices
-
-load("ir_functioning_jac_from_UFa.mat")
-
-% what to plot
-threshold = 0.1;
-maxnir = max(model.nir, [], 1);
-[~, idx_sorted] = sort(maxnir, "descend");
-idx_sorted = idx_sorted(maxnir(idx_sorted) > threshold);
-
-% reference solution
-figure
-grid on
-semilogy(model.t_ref, model.X_ref(:, idx_sorted), 'LineWidth', lw) %DisplayName', plotnames(i))
-xlim([-2 42])
-ylim([1e-7 5e4])
-legend(model.I.nmstatelegend(idx_sorted), 'Location', 'southeast')
-xlabel("t [h]")
-ylabel("concentration [g/L]")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, "./figures/functioning_jac_from_UFa_ref_sol.pdf")
-
-% ir-indices
-figure
-plot(model.t_ref, model.nir(:, idx_sorted), 'LineStyle', '-', 'LineWidth', lw)
-legend(model.I.nmstatelegend(idx_sorted))
-xlim([-0.3 20])
-xlabel("t [h]")
-ylabel("nir-index")
-
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
-
-exportgraphics(gcf, ['./figures/functioning_jac_from_UFa_ir_indices.pdf'])
-
-
-
-
-
