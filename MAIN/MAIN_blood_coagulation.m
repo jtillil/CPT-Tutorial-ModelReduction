@@ -79,6 +79,12 @@ end
 end
 end
 
+% correct reduction
+% config(model.I.PS) = "pneg";
+% config(model.I.PC) = "pneg";
+% config(model.I.APC) = "pneg";
+% config(model.I.Tmod) = "pneg";
+
 % calculate error
 multiple.multiple = 0;
 [err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
@@ -90,6 +96,113 @@ disp(sum(config == "env"))
 disp(sum(config == "pss"))
 disp(sum(config == "pneg"))
 disp(sum(config == "cneg"))
+
+%% plot index-reduced model
+
+size = 12;
+lw = 1;
+lwt = 0.5;
+
+model.I.nmstatelegend = cellfun(@(x) strrep(x, '_', ':'), model.I.nmstatelegend, 'UniformOutput', false);
+
+% reference solution
+figure
+hold on
+for i = 1:7
+    semilogy(model.t_ref, Xred(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    semilogy(model.t_ref, Xred(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+xlim([-2 42])
+ylim([1e-7 5e4])
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'southeast')
+xlabel("t [h]")
+ylabel("concentration [nmol/L]")
+yscale('log')
+box on
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_index_reduced_005_24_ref_sol.pdf")
+
+% reference solution 0 - 0.15 h
+figure
+hold on
+for i = 1:7
+    semilogy(model.t_ref, Xred(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    semilogy(model.t_ref, Xred(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+xlim([-0.005 0.155])
+ylim([1e-7 5e4])
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'southeast')
+xlabel("t [h]")
+ylabel("concentration [nmol/L]")
+yscale('log')
+box on
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BC_SV40_index_reduced_005_24_ref_sol_015h.pdf")
+
+%% code pss states into index-reduced model
+
+% obtain pss states
+I_red = config2I(model.I, config, []);
+
+% create symbolic variables
+syms t;
+par_sym = cell2sym(model.I.nmpar(:));
+X_sym = cell2sym(model.I.nmstate(:));
+
+% make odefun symbolic
+tic
+odefun_symbolic = model.odefun(X_sym,par_sym);
+disp(toc)
+
+nm_X_pss = model.I.nmstate(config == "pss");
+X_sym_pss = X_sym(config == "pss");
+odefun_symbolic_pss = odefun_symbolic(config == "pss");
+
+% solve pss states
+G = solve(odefun_symbolic_pss, X_sym_pss);
+
+% input solved states to ODEs
+for k = 1:length(X_sym_pss)
+    solutions = G.(nm_X_pss{k});
+    odefun_symbolic_solved = subs(odefun_symbolic, X_sym_pss(k), solutions(1));
+end
+
+% remove solved state ODEs
+odefun_symbolic_solved(config == "pss") = 0;
+
+% simplify solved ODEs
+odefun_symbolic_solved = simplify(odefun_symbolic_solved);
+
+% differentiate jac with solved ODEs
+tic
+jacfun_symbolic_solved = sym(zeros(model.I.nstates, model.I.nstates));
+for i = 1:model.I.nstates
+    for j = 1:model.I.nstates
+        jacfun_symbolic_solved(i, j) = diff(odefun_symbolic(i), X_sym(j));
+    end
+end
+disp(toc)
+
+% convert to matlabfun and insert to model
+model.odefun = matlabFunction(odefun_symbolic_solved,'Vars',{X_sym,par_sym});
+model.ode = model.odefun;
+model.jacfun = matlabFunction(jacfun_symbolic_solved,'Vars',{X_sym,par_sym,t});
+model.jac = model.jacfun;
+
+% update I
+model.I.pss_solved = model.I.pss;
+model.I.pss = [];
+
+%% check pss solved index reduced model
+
+% config(config == "pss") = "pneg";
+[err_index_solved, ~, tred_solved, Xred_solved] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
 
 %% pneg run of index-reduced model
 mor_options.err_out         = err_index.errout + 0.01;

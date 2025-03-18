@@ -1,9 +1,11 @@
 syms x1 x2 y1 y2
-F1 = x1 + 0*y1*y2 + 0*y2;  % First equation
-F2 = x2 + y1 + 5*y2; % Second equation
+F1 = x1 + 1*y1*y2 + 1*y2;  % First equation
+F2 = x2 + y1 + 1*y2; % Second equation
+F3 = x1 - y2 - cos(y1);
+F4 = x1 + sin(y1) - y2;
 
 % Define F as a vector
-F = [F1; F2];
+F = [F3; F4];
 
 % Define variables
 X = [x1; x2];  % Independent variables
