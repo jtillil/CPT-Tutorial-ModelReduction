@@ -201,8 +201,15 @@ model.I.pss = [];
 
 %% check pss solved index reduced model
 
-% config(config == "pss") = "pneg";
+config(config == "pss") = "pneg";
+model.I = config2I(model.I, config, []);
 [err_index_solved, ~, tred_solved, Xred_solved] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
+
+%% ir-indices of pss solved index reduced model
+
+[ir, contr, obs] = compute_ir_indices_matlabfun(model);
+
+save("indices_irred_0.05_BCSV40_from_JKn_pss_solved.mat", "ir", "contr", "obs")
 
 %% pneg run of index-reduced model
 mor_options.err_out         = err_index.errout + 0.01;
