@@ -208,3 +208,49 @@ box on
 set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05_10_linear_dyncnegpnegenv_ir_015h.pdf")
+
+%% index-reduced model - TODO UPDATE IR TO READ FROM MODEL ONCE SAVED
+
+model.I.nmstatelegend = cellfun(@(x) strrep(x, '_', ':'), model.I.nmstatelegend, 'UniformOutput', false);
+
+% nir-indices
+figure
+hold on
+for i = 1:7
+    plot(model.t_ref, ir.nindex(1:(end-2), model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    plot(model.t_ref, ir.nindex(1:(end-2), model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+yline(0.1, 'k--', 'LineWidth', lwt)
+% xlim([-0.14 4.15])
+xlim([-0.3 10.3])
+ylim([-0.01 1])
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'east')
+xlabel("t [h]")
+ylabel("nir-index")
+box on
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/irred_0.05_BCSV40_from_JKn_pss_solved_ir.pdf")
+
+% nir-indices 0 - 0.15 h
+figure
+hold on
+for i = 1:7
+    plot(model.t_ref, ir.nindex(1:(end-2), model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
+    plot(model.t_ref, ir.nindex(1:(end-2), model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+end
+yline(0.1, 'k--', 'LineWidth', lwt)
+% xlim([-0.14 4.15])
+xlim([-0.005 0.155])
+ylim([-0.01 1])
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'northeast')
+xlabel("t [h]")
+ylabel("nir-index")
+box on
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/irred_0.05_BCSV40_from_JKn_pss_solved_ir_015h.pdf")
