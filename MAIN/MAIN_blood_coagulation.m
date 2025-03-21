@@ -207,9 +207,15 @@ model.I = config2I(model.I, config, []);
 
 %% ir-indices of pss solved index reduced model
 
+model.t_ref = model.t_ref([1:80:end]);
+model.X_ref = model.X_ref([1:80:end], :);
+
+config = repmat("dyn", [model.I.nstates, 1]);
+model.I = config2I(model.I, config, []);
+
 [ir, contr, obs] = compute_ir_indices_matlabfun(model);
 
-save("indices_irred_0.05_BCSV40_from_JKn_pss_solved.mat", "ir", "contr", "obs")
+% save("indices_irred_0.05_BCSV40_from_JKn_pss_solved.mat", "ir", "contr", "obs")
 
 %% pneg run of index-reduced model
 mor_options.err_out         = err_index.errout + 0.01;
