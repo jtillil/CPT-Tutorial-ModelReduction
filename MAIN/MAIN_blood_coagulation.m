@@ -14,7 +14,7 @@ reduced_errors = struct;
 % 
 % plot(model.t_ref, ir.nindex(:, model.I.output))
 
-%% Reduce model with index analysis (Jane 2024 scheme including state-approximation errors
+%% Reduce model with index analysis (Jane 2024 scheme including state-approximation errors)
 
 % load model
 load("modelBC_SV40_from_JKn_2024.mat")
@@ -111,7 +111,7 @@ load("modelBC_SV40_from_JKn_2024.mat")
 
 % initialize config and threshold
 config = repmat("dyn", [1, model.I.nstates]);
-t = 0.1;
+t = 0.05;
 
 errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
 
