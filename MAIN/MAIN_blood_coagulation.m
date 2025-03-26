@@ -14,14 +14,14 @@ reduced_errors = struct;
 % 
 % plot(model.t_ref, ir.nindex(:, model.I.output))
 
-%% Reduce model with index analysis
+%% Reduce model with index analysis (Jane 2024 scheme including state-approximation errors
 
 % load model
 load("modelBC_SV40_from_JKn_2024.mat")
 
 % initialize config and threshold
 config = repmat("dyn", [1, model.I.nstates]);
-t = 0.05;
+t = 0.1;
 
 errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
 
@@ -74,6 +74,9 @@ if neg == 1
         elseif cneg <= pneg
             config(i) = "cneg";
         end
+    else
+        disp("unclassified")
+        disp(model.I.nmstate(i))
     end
 end
 end
@@ -96,6 +99,84 @@ disp(sum(config == "env"))
 disp(sum(config == "pss"))
 disp(sum(config == "pneg"))
 disp(sum(config == "cneg"))
+
+model.I.nmstate(config == "pss")
+max(model.pneg.nindex(:, model.I.TFPI))
+max(model.pneg.nindex(:, model.I.VK))
+
+%% Reduce model with index analysis
+
+% load model
+load("modelBC_SV40_from_JKn_2024.mat")
+
+% initialize config and threshold
+config = repmat("dyn", [1, model.I.nstates]);
+t = 0.1;
+
+errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
+
+% assign config based on index analysis results
+for i = 1:model.I.nstates
+ir = max(model.ir.nindex(:, i));
+env = max(model.env.nindex(:, i));
+pss = max(model.pss.nindex(:, i));
+cneg = max(model.cneg.nindex(:, i));
+pneg = max(model.pneg.nindex(:, i));
+
+envrel = max(model.env.relstateerr(:, i));
+pssrel = max(model.pss.relstateerr(:, i));
+
+scindices = [pneg cneg env pss];
+% if envrel >= t
+%     scindices(1) = 1e6;
+% elseif pssrel >= t
+%     scindices(2) = 1e6;
+% end
+[minscindices, idxminscindices] = min(scindices);
+
+if ir <  t && minscindices < t
+    if idxminscindices == 1
+        config(i) = "pneg";
+    elseif idxminscindices == 2
+        config(i) = "cneg";
+    elseif idxminscindices == 3
+        % config(i) = "env";
+        if pssrel >= t
+            config(i) = "env_bad_approx";
+        else
+            config(i) = "env";
+        end
+    elseif idxminscindices == 4
+        % config(i) = "pss";
+        if pssrel >= t
+            config(i) = "pss_bad_approx";
+        else
+            config(i) = "pss";
+        end
+    end
+end
+
+end
+
+% correct reduction
+% config(model.I.PS) = "pneg";
+% config(model.I.PC) = "pneg";
+% config(model.I.APC) = "pneg";
+% config(model.I.Tmod) = "pneg";
+
+% calculate error
+% multiple.multiple = 0;
+% [err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
+
+% show results
+disp(err_index.errout)
+disp(sum(config == "dyn"))
+disp(sum(config == "env"))
+disp(sum(config == "env_bad_approx"))
+disp(sum(config == "pneg"))
+disp(sum(config == "cneg"))
+disp(sum(config == "pss"))
+disp(sum(config == "pss_bad_approx"))
 
 %% plot index-reduced model
 
