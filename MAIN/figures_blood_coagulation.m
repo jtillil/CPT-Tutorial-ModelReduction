@@ -83,7 +83,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 % xlim([-0.14 4.15])
 xlim([-0.005 0.155])
 ylim([-0.01 1])
-legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'north')
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'northeast')
 xlabel("t [h]")
 ylabel("nir-index")
 box on
@@ -109,9 +109,11 @@ for i = 1:length(model.analysis.ir.nmstates_above_nindex_threshold)
     xlim([-0.14 4.15])
     ylim([5e-4 1e1])
     set(gca, 'YScale', 'log')
-    legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+    % legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+    legend('env', 'pss', 'cneg', 'pneg', 'Location','northeast')
     xlabel("t [h]")
     ylabel("normalised index")
+    box on
     hold off
     
     set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
@@ -129,10 +131,10 @@ model.I.nmstatelegend = cellfun(@(x) strrep(x, '_', ':'), model.I.nmstatelegend,
 figure
 hold on
 for i = 1:7
-    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+    semilogy(model.t_ref, model.X_red(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
 end
 for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
-    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+    semilogy(model.t_ref, model.X_red(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
 end
 xlim([-2 42])
 ylim([1e-7 5e4])
@@ -149,10 +151,10 @@ exportgraphics(gcf, "./figures/BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05
 figure
 hold on
 for i = 1:7
-    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
+    semilogy(model.t_ref, model.X_red(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), 'LineWidth', lw) %DisplayName', plotnames(i))
 end
 for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
-    semilogy(model.t_ref, model.X_ref(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
+    semilogy(model.t_ref, model.X_red(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
 end
 xlim([-0.005 0.155])
 ylim([1e-7 5e4])
@@ -201,7 +203,7 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 % xlim([-0.14 4.15])
 xlim([-0.005 0.155])
 ylim([-0.01 1])
-legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'north')
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'northeast')
 xlabel("t [h]")
 ylabel("nir-index")
 box on
