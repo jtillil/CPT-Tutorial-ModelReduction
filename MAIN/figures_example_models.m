@@ -1,7 +1,8 @@
 %% Setup
 clear; clc;
 addpath(genpath("../../CPT-Tutorial-ModelReduction"))
-size = 8;
+sizex = 8;
+sizey = 6;
 lw = 1;
 lwt = 0.5;
 
@@ -17,7 +18,7 @@ legend('A', 'S', 'B', 'C', 'D', 'Location','northeast')
 xlabel("t [min]")
 ylabel("concentration [nM]")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_no_crosstalk_ref_sol.pdf")
 
@@ -31,7 +32,7 @@ legend('A', 'S', 'B', 'C', 'D', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("nir-index")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_no_crosstalk_ir.pdf")
 
@@ -47,12 +48,12 @@ xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_no_crosstalk_non_ir_B.pdf")
 
@@ -68,12 +69,12 @@ xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 % hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_no_crosstalk_non_ir_C.pdf")
 
@@ -89,12 +90,12 @@ xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 % hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_no_crosstalk_non_ir_S.pdf")
 
@@ -110,7 +111,7 @@ legend('A', 'S', 'B', 'C', 'D', 'Location','northeast')
 xlabel("t [min]")
 ylabel("concentration [nM]")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_with_crosstalk_ref_sol.pdf")
 
@@ -124,7 +125,7 @@ legend('A', 'S', 'B', 'C', 'D', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("nir-index")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_with_crosstalk_ir.pdf")
 
@@ -140,12 +141,12 @@ xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_with_crosstalk_non_ir_B.pdf")
 
@@ -161,12 +162,12 @@ xlim([-0.002 0.052])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/SPP_with_crosstalk_non_ir_C.pdf")
 
@@ -183,7 +184,7 @@ legend('A', 'S', 'E', 'C', 'P', 'Location','northeast')
 xlabel("t [min]")
 ylabel("concentration [nM]")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_ref_sol.pdf")
 
@@ -197,7 +198,7 @@ legend('A', 'S', 'E', 'C', 'P', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("nir-index")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_ir.pdf")
 
@@ -213,12 +214,12 @@ xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_non_ir_E.pdf")
 
@@ -234,12 +235,12 @@ xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_Eenv_non_ir_C.pdf")
 
@@ -255,7 +256,7 @@ legend('A', 'S', 'E', 'C', 'P', 'Location','northeast')
 xlabel("t [min]")
 ylabel("concentration [nM]")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_ref_sol.pdf")
 
@@ -269,7 +270,7 @@ legend('A', 'S', 'E', 'C', 'P', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("nir-index")
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_ir.pdf")
 
@@ -285,12 +286,12 @@ xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_non_ir_E.pdf")
 
@@ -306,12 +307,12 @@ xlim([-1 31])
 ylim([5e-4 1e1])
 set(gca, 'YScale', 'log')
 box on
-legend('env', 'pss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
 xlabel("t [min]")
 ylabel("normalised index")
 hold off
 
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_non_ir_C.pdf")
 
