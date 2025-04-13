@@ -59,8 +59,17 @@ extreme_vals_X0_5 = vals(1:5);
 extreme_indv_X0_5 = idx(1:5);
 
 % compute indices for 5 extreme individuals
-indv_nr = 2; % can be 1, 2, 3, 4, 5
-indv_id = extreme_indv_X0_5(indv_nr);
-model.X0 = virtual_pop_X0(indv_nr, :)';
-[ir, contr, obs] = compute_ir_indices_matlabfun(model);
-save(['results/irindices_BCSV40_from_JKn_full_extreme' char(string(indv_nr)) '_seed' char(string(seed)) '.mat'], "ir", "contr", "obs")
+% indv_nr = 2; % can be 1, 2, 3, 4, 5
+% indv_id = extreme_indv_X0_5(indv_nr);
+% model.X0 = virtual_pop_X0(indv_nr, :)';
+% [ir, contr, obs] = compute_ir_indices_matlabfun(model);
+% save(['results/irindices_BCSV40_from_JKn_full_extreme' char(string(indv_nr)) '_seed' char(string(seed)) '.mat'], "ir", "contr", "obs")
+
+% reduce model for ref + 5 extreme indvs
+% TODO after indices done
+
+% reference solutions for virtual pop
+X_ref_var = cell([1 Npop]);
+for npop = 1:Npop
+    [~, X_ref_var{npop}, ~, ~] = simModel(model.t_ref, virtual_pop_X0(npop, :), model.par, model.I, model.param, model.multiple, model.odefun, model.jacfun);
+end
