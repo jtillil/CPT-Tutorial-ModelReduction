@@ -1,4 +1,5 @@
 clear; clc;
+addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 
 % load model
 load("modelBC_SV40_from_JKn_2024.mat")
@@ -9,7 +10,7 @@ X0 = model.X0;
 
 % generate virtual pop
 seed = 1234;
-rng(seed);
+rng(seed, "twister");
 Npop = 100;
 
 virtual_pop_par = zeros(Npop, length(par));
