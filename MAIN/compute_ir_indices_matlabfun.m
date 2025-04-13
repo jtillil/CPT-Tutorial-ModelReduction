@@ -112,7 +112,7 @@ relevantstates = 1:I.nstates;
 % end
 
 if inform, fprintf(' and for each t*: '); end
-for ts = 1:(ntstar-1)
+parfor ts = 1:(ntstar-1)
     
     if inform, fprintf('%d,',ntstar-ts); end
     
@@ -146,7 +146,7 @@ for ts = 1:(ntstar-1)
             ir.index(ts,k)    = NaN;
         end
     end
-    clear Jac_y extX_tstar
+    % clear Jac_y extX_tstar
     
 end
 elapsedtime = toc; fprintf('\n [elapsed time = %.1f]\n\n',elapsedtime);
