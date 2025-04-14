@@ -104,3 +104,32 @@ for i = 1:Npop
 end
 mean(errors)
 sum(errors < 0.1)
+
+%% BACKTRACK
+% indexing
+I = model.I;
+
+% initiate first config
+% exhaustive_mor.configs = repmat("dyn", 1, I.nstates);
+% exhaustive_mor.configs(logical(model.state_unimportant)) = "pneg";
+validindices = find(redmodel.exhaustive_mor.objvals(:, 2) < mor_options.err_out & redmodel.exhaustive_mor.objvals(:, 3) < mor_options.err_int);
+best_idx = validindices(end);
+lastconfig = redmodel.exhaustive_mor.configs(best_idx, :);
+exhaustive_mor.configs(1, :) = lastconfig;
+
+% initiate exhaustive_mor
+if mor_options.variability
+    exhaustive_mor.objvals = [I.nstates 0 0 0 0 0];
+else
+    exhaustive_mor.objvals = [I.nstates 0 0 0];
+end
+exhaustive_mor.criterion = 0;
+exhaustive_mor.statefromtoreduced = {0 "dyn" "dyn" 0};
+exhaustive_mor.time = 0;
+
+% make backwards mor
+backwards_mor = exhaustive_mor;
+backwards_mor.morexh_iteration = best_idx;
+
+[backwards_mor, ~] = mor_exh_backwards(model, redmodel, backwards_mor, best_idx, redmodel.mor_options, []);
+
