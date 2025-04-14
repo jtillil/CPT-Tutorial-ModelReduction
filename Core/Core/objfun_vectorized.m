@@ -17,7 +17,7 @@
 %%% Authors: Johannes Tillil
 %%%
 
-function [vector_objvals, log] = objfun_vectorized(model, mat_vector_config, statefromtoreduced, timeout, errtype, variability, virtual_pop, X_ref_var, log)
+function [vector_objvals, log] = objfun_vectorized(model, mat_vector_config, statefromtoreduced, timeout, errtype, variability, virtual_pop_X0, virtual_pop_par, X_ref_var, log)
 
 % LOG
 log_required = (nargin > 8);
@@ -64,11 +64,11 @@ start_of_parfeval = tic;
 
 % create parfeval futures
 if variability
-    Npop = size(virtual_pop, 1);
+    Npop = size(virtual_pop_X0, 1);
     for nconfig = 1:Nconfigs
         for npop = 1:Npop
             parfevalID = (nconfig - 1) * Npop + npop;
-            f(parfevalID) = parfeval(@objfun, 5, t_ref, X_ref_var{npop}, virtual_pop(npop, :)', par, I, L, param, multiple, odefun, jacfun, mat_vector_config(nconfig, :), errtype);
+            f(parfevalID) = parfeval(@objfun, 5, t_ref, X_ref_var{npop}, virtual_pop_X0(npop, :)', virtual_pop_par(npop, :)', I, L, param, multiple, odefun, jacfun, mat_vector_config(nconfig, :), errtype);
         end
     end
     cancelled = zeros(1, Nconfigs * Npop);

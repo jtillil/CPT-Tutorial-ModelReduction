@@ -108,10 +108,20 @@ sum(errors < 0.1)
 %% BACKTRACK
 % indexing
 I = model.I;
+model.L = [];
 
 % initiate first config
 % exhaustive_mor.configs = repmat("dyn", 1, I.nstates);
 % exhaustive_mor.configs(logical(model.state_unimportant)) = "pneg";
+mor_options = redmodel.mor_options;
+mor_options.err_out = 0.1;
+mor_options.err_int = inf;
+
+mor_options.variability = 1;
+mor_options.virtual_pop_par = virtual_pop_par;
+mor_options.virtual_pop_X0 = virtual_pop_par_initials_ss;
+mor_options.X_ref_var = X_ref_var_ss;
+
 validindices = find(redmodel.exhaustive_mor.objvals(:, 2) < mor_options.err_out & redmodel.exhaustive_mor.objvals(:, 3) < mor_options.err_int);
 best_idx = validindices(end);
 lastconfig = redmodel.exhaustive_mor.configs(best_idx, :);
@@ -131,5 +141,8 @@ exhaustive_mor.time = 0;
 backwards_mor = exhaustive_mor;
 backwards_mor.morexh_iteration = best_idx;
 
-[backwards_mor, ~] = mor_exh_backwards(model, redmodel, backwards_mor, best_idx, redmodel.mor_options, []);
+[backwards_mor, ~] = mor_exh_backwards(model, redmodel, backwards_mor, best_idx, mor_options, []);
 
+%%%% DO NEW GREEDY REDUCTION WITH VARIABILITY
+
+%%%% DO NEW NORMAL REDUCTION TO HAVE SEQUENCE FOR BACKTRACKING

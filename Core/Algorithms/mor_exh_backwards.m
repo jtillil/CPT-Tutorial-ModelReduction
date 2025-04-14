@@ -15,7 +15,9 @@ classifs_to_consider = mor_options.classifs_to_consider;
 saveroot = mor_options.saveroot;
 errtype = mor_options.errtype;
 variability = mor_options.variability;
-virtual_pop = mor_options.virtual_pop;
+% virtual_pop = mor_options.virtual_pop;
+virtual_pop_par = mor_options.virtual_pop_par;
+virtual_pop_X0 = mor_options.virtual_pop_X0;
 X_ref_var = mor_options.X_ref_var;
 
 % LOG
@@ -47,9 +49,9 @@ while true
     % calculate all objective values
     objfun_startTime = tic;
     if log_required
-        [test_objvals, log] = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop, X_ref_var, log);
+        [test_objvals, log] = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop_X0, virtual_pop_par, X_ref_var, log);
     else
-        test_objvals = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop, X_ref_var);
+        test_objvals = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop_X0, virtual_pop_par, X_ref_var);
     end
     objfun_time = toc(objfun_startTime);
 
