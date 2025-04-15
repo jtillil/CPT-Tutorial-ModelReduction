@@ -42,7 +42,11 @@ end
 lastconfig = exhaustive_mor.configs(1, :);
 
 % initiate exhaustive_mor
-exhaustive_mor.objvals = [I.nstates 0 0 0];
+if mor_options.variability
+    exhaustive_mor.objvals = [I.nstates 0 0 0 0 0];
+else
+    exhaustive_mor.objvals = [I.nstates 0 0 0];
+end
 exhaustive_mor.criterion = 0;
 exhaustive_mor.statefromtoreduced = {0 "dyn" "dyn" 0};
 exhaustive_mor.time = 0;

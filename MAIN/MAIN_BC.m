@@ -21,7 +21,7 @@ load("modelBC_SV40_from_JKn_2024.mat")
 
 % initialize config and threshold
 config = repmat("dyn", [1, model.I.nstates]);
-t = 0.1;
+t = 0.05;
 
 errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
 
@@ -82,6 +82,9 @@ end
 end
 end
 
+model.I.nmstate(config == "dyn")
+
+%%
 % correct reduction
 % config(model.I.PS) = "pneg";
 % config(model.I.PC) = "pneg";

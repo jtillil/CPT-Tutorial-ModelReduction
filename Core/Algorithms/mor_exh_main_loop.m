@@ -13,7 +13,9 @@ classifs_to_consider = mor_options.classifs_to_consider;
 saveroot = mor_options.saveroot;
 errtype = mor_options.errtype;
 variability = mor_options.variability;
-virtual_pop = mor_options.virtual_pop;
+var_obj_prctile = mor_options.var_obj_prctile;
+virtual_pop_X0 = mor_options.virtual_pop_X0;
+virtual_pop_par = mor_options.virtual_pop_par;
 X_ref_var = mor_options.X_ref_var;
 
 % LOG
@@ -27,12 +29,13 @@ X0empty = (model.X0 == 0);
 
 % unnecessary states
 state_unimportant = model.state_unimportant;
+state_constant = zeros([model.I.nstates, 1]);
 
 %% main loop
 while true
     % handle next iteration
     iteration = iteration + 1; fprintf('\n     Iteration: %i', iteration);
-    [test_configs, statefromtoreduced] = generate_configs(lastconfig, I, classifs_to_consider, X0empty, state_unimportant, criterion);
+    [test_configs, statefromtoreduced] = generate_configs(lastconfig, I, classifs_to_consider, X0empty, state_unimportant, state_constant, criterion);
 
     % LOG: test_configs AND statefromtoreduced
     if log_required
@@ -43,9 +46,9 @@ while true
     % calculate all objective values
     objfun_startTime = tic;
     if log_required
-        [test_objvals, log] = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop, X_ref_var, log);
+        [test_objvals, log] = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, var_obj_prctile, virtual_pop_X0, virtual_pop_par, X_ref_var, log);
     else
-        test_objvals = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop, X_ref_var);
+        test_objvals = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, var_obj_prctile, virtual_pop_X0, virtual_pop_par, X_ref_var);
     end
     objfun_time = toc(objfun_startTime);
 
@@ -86,7 +89,11 @@ while true
 
     % handle repeated reductions
     while statefromtoreduced{best_indx, 4} == 1 && best_val >= exhaustive_mor.criterion(iteration-1)
-        test_objvals(best_indx,:) = [I.nstates+1 1e6 1e6 1e6];
+        if mor_options.variability
+            test_objvals(best_indx,:) = [I.nstates+1 1e6 1e6 1e6 1e6 1e6];
+        else
+            test_objvals(best_indx,:) = [I.nstates+1 1e6 1e6 1e6];
+        end
         switch criterion
             case 'out'
                 objval_criteria(best_indx) = test_objvals(best_indx,2);
@@ -172,7 +179,7 @@ end
 
 %%%% Helper functions %%%%
 
-function [configs, statefromtoreduced] = generate_configs(lastconfig, I, classifs_to_consider, X0empty, state_unimportant, criterion)
+function [configs, statefromtoreduced] = generate_configs(lastconfig, I, classifs_to_consider, X0empty, state_unimportant, state_constant, criterion)
 
 if length(classifs_to_consider) < 2
     error('Not enough possible state classifications provided - more than one needed.')
@@ -186,6 +193,8 @@ end
 for stateID = 1:I.nstates  %([1:51 53 55:78 80:112])
     if state_unimportant(stateID)
         nconfigs = nconfigs + 1;
+    elseif state_constant(stateID)
+        nconfigs = nconfigs + 0;
     elseif lastconfig(stateID) == "dyn"
         if X0empty(stateID)
             nconfigs = nconfigs + length(classifs_to_consider) - 2;
@@ -233,6 +242,8 @@ for stateID = 1:I.nstates
             statefromtoreduced{curr_config, 4} = 1;
             curr_config = curr_config + 1;
         end
+    elseif state_constant(stateID)
+        % ...
     elseif lastconfig(stateID) == "dyn"
         for newstateconfig = setdiff(classifs_to_consider, "dyn", 'stable')
             if newstateconfig == "env" && X0empty(stateID)

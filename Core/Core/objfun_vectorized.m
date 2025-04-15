@@ -17,10 +17,10 @@
 %%% Authors: Johannes Tillil
 %%%
 
-function [vector_objvals, log] = objfun_vectorized(model, mat_vector_config, statefromtoreduced, timeout, errtype, variability, virtual_pop_X0, virtual_pop_par, X_ref_var, log)
+function [vector_objvals, log] = objfun_vectorized(model, mat_vector_config, statefromtoreduced, timeout, errtype, variability, var_obj_prctile, virtual_pop_X0, virtual_pop_par, X_ref_var, log)
 
 % LOG
-log_required = (nargin > 8);
+log_required = (nargin > 10);
 
 % number of configs to parallelize
 Nconfigs = size(mat_vector_config, 1);
@@ -177,7 +177,7 @@ if variability
         elseif isnan(errout_ref) || isnan(errdyn100_ref)
             vector_objvals(nconfig, :) = [model.I.nstates+1, 4e6, 4e6, 4e6, 4e6, 4e6];
         else
-            vector_objvals(nconfig, :) = [ndyn prctile(errout, 90) prctile(errdyn100, 90) mean(simtime) errout_ref errdyn100_ref];
+            vector_objvals(nconfig, :) = [ndyn prctile(errout, var_obj_prctile) prctile(errdyn100, var_obj_prctile) mean(simtime) errout_ref errdyn100_ref];
         end
         if log_required
             outflags = '';

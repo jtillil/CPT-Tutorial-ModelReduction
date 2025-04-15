@@ -1,6 +1,6 @@
 %% setup
 
-function morexh_model(model, modelname, mode, eout, eint, pint, timeout, crit, errtype, firstrun, pnegrun, conlawrun, classifs, variability, var_obj_prctile, LHS_EOG, variability_input, virtual_pop, X_ref_var, backwards, redmodel, config, log_required)
+function morexh_model(model, modelname, mode, eout, eint, pint, timeout, crit, errtype, firstrun, pnegrun, conlawrun, classifs, variability, var_obj_prctile, LHS_EOG, variability_input, virtual_pop_X0, virtual_pop_par, X_ref_var, backwards, redmodel, config, log_required)
 
 % clear; clc; close all;
 
@@ -26,7 +26,8 @@ mor_options.config = config;
 mor_options.variability = variability;
 mor_options.var_obj_prctile = var_obj_prctile;
 mor_options.backwards = backwards;
-mor_options.virtual_pop = virtual_pop;
+mor_options.virtual_pop_X0 = virtual_pop_X0;
+mor_options.virtual_pop_par = virtual_pop_par;
 mor_options.X_ref_var = X_ref_var;
 
 % mor_options.classifs_to_consider = ["dyn" "cneg" "pneg" "env"];
@@ -48,7 +49,7 @@ if mor_options.variability
     if LHS_EOG
         mor_options.saveroot = [mor_options.saveroot 'lhseog'];
     end
-    mor_options.saveroot = [mor_options.saveroot char(string(size(virtual_pop, 1) - 1))];
+    mor_options.saveroot = [mor_options.saveroot char(string(size(virtual_pop_X0, 1) - 1))];
 end
 if mor_options.backwards
     mor_options.saveroot = [mor_options.saveroot '_backwards'];

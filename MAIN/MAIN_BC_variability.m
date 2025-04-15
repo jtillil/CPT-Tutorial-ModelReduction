@@ -5,6 +5,7 @@ addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 load("modelBC_SV40_from_JKn_2024.mat")
 config = repmat("dyn", [1, model.I.nstates]);
 model.I = config2I(model.I, config, []);
+model.L = [];
 par = model.par;
 X0 = model.X0;
 
@@ -13,7 +14,7 @@ seed = 1234;
 rng(seed, "twister");
 Npop = 100;
 
-virtual_pop_par = zeros(Npop, length(par));
+virtual_pop_par = zeros(Npop+1, length(par));
 % lognpdf_par = zeros(Npop, length(par));
 for i = 1:length(par)
     if par(i) ~= 0
@@ -22,7 +23,7 @@ for i = 1:length(par)
         mu = log(m^2 / sqrt(v + m^2));
         sigma = sqrt(log(v / (m^2) + 1));
 
-        virtual_pop_par(:, i) = lognrnd(mu, sigma, [Npop 1]);
+        virtual_pop_par(2:end, i) = lognrnd(mu, sigma, [Npop 1]);
         % lognpdf_par(:, i) = lognpdf(virtual_pop_par(:, i), mu, sigma);
     else
         % lognpdf_par(:, i) = 1;
@@ -50,15 +51,19 @@ end
 % steady-state initials and reference solution for virtual pop
 X0_no_input = X0;
 X0_no_input(model.I.input) = 0;
-virtual_pop_par_initials_ss = zeros(Npop, length(X0));
-X_ref_var_ss = cell([1 Npop]);
-for npop = 1:Npop
+virtual_pop_par_initials_ss = zeros(Npop+1, length(X0));
+X_ref_var_ss = cell([1 Npop+1]);
+for npop = 2:(Npop + 1)
     [~, curr_X_ref, ~, ~] = simModel([0 2000], X0_no_input, virtual_pop_par(npop, :)', model.I, model.param, model.multiple, model.odefun, model.jacfun);
     virtual_pop_par_initials_ss(npop, :) = curr_X_ref(end, :);
     virtual_pop_par_initials_ss(npop, model.I.input) = X0(model.I.input);
     virtual_pop_par_initials_ss(npop, (virtual_pop_par_initials_ss(npop, :) < 1e-10)) = 0;
     [~, X_ref_var_ss{npop}, ~, ~] = simModel(model.t_ref, virtual_pop_par_initials_ss(npop, :)', virtual_pop_par(npop, :)', model.I, model.param, model.multiple, model.odefun, model.jacfun);
 end
+
+X_ref_var_ss{1} = model.X_ref;
+virtual_pop_par_initials_ss(1, :) = X0';
+virtual_pop_par(1, :) = par';
 
 % virtual_pop_X0(:, model.I.input) = 0;
 % virtual_pop_X0_ss = zeros(Npop, length(X0));
@@ -95,20 +100,71 @@ end
 % TODO after indices done
 
 % reduced model solutions for virtual pop after steady-state
-load("BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05_10_linear_dyncnegpnegenv.mat")
-redconfig_8_state = redmodel.redobj.redconfig;
-errors = zeros(Npop, 1);
-for i = 1:Npop
-    [obj, ~, ~, ~, ~] = objfun(model.t_ref, X_ref_var_ss{i}, virtual_pop_par_initials_ss(i, :)', virtual_pop_par(i, :)', model.I, [], model.param, model.multiple, model.odefun, model.jacfun, redconfig_8_state, "MRSE");
-    errors(i) = obj.errout;
-end
-mean(errors)
-sum(errors < 0.1)
+% load("BCSV40_from_JKn_exh_t120_MRSE_pnegrun_greedy_0.05_10_linear_dyncnegpnegenv.mat")
+% redconfig_8_state = redmodel.redobj.redconfig;
+% errors = zeros(Npop, 1);
+% for i = 1:Npop
+%     [obj, ~, ~, ~, ~] = objfun(model.t_ref, X_ref_var_ss{i}, virtual_pop_par_initials_ss(i, :)', virtual_pop_par(i, :)', model.I, [], model.param, model.multiple, model.odefun, model.jacfun, redconfig_8_state, "MRSE");
+%     errors(i) = obj.errout;
+% end
+% mean(errors)
+% sum(errors < 0.1)
+
+%%%% DO NEW NORMAL REDUCTION TO HAVE SEQUENCE FOR BACKTRACKING
+% morexh_model(model, ...
+%     'BC_SV40_from_JKn_2024', ...
+%     'from_start', ...
+%     0.1, ...
+%     inf, ...
+%     100, ...
+%     120, ...
+%     'linear', ...
+%     'MRSE', ...
+%     0, ...
+%     0, ...
+%     0, ...
+%     ["dyn", "pneg", "env"], ...
+%     0, ...
+%     0, ...
+%     0, ...
+%     0, ...
+%     [], ...
+%     [], ...
+%     [], ...
+%     0, ...
+%     [], [], 0)
+
+%%%% DO NEW GREEDY REDUCTION WITH VARIABILITY
+morexh_model(model, ...
+    'BC_SV40_from_JKn_2024', ...
+    'from_start', ...
+    0.1, ...
+    inf, ...
+    100, ...
+    120, ...
+    'linear', ...
+    'MRSE', ...
+    0, ...
+    0, ...
+    0, ...
+    ["dyn", "pneg", "env"], ...
+    1, ...
+    90, ...
+    0, ...
+    0, ...
+    virtual_pop_par_initials_ss, ...
+    virtual_pop_par, ...
+    X_ref_var_ss, ...
+    0, ...
+    [], [], 0)
+
 
 %% BACKTRACK
 % indexing
 I = model.I;
 model.L = [];
+
+load("BC_SV40_from_JKn_2024_exh_t120_MRSE_0.1_Inf_linear_dynpnegenv.mat")
 
 % initiate first config
 % exhaustive_mor.configs = repmat("dyn", 1, I.nstates);
@@ -118,6 +174,7 @@ mor_options.err_out = 0.1;
 mor_options.err_int = inf;
 
 mor_options.variability = 1;
+mor_options.var_obj_prctile = 95;
 mor_options.virtual_pop_par = virtual_pop_par;
 mor_options.virtual_pop_X0 = virtual_pop_par_initials_ss;
 mor_options.X_ref_var = X_ref_var_ss;
@@ -146,3 +203,22 @@ backwards_mor.morexh_iteration = best_idx;
 %%%% DO NEW GREEDY REDUCTION WITH VARIABILITY
 
 %%%% DO NEW NORMAL REDUCTION TO HAVE SEQUENCE FOR BACKTRACKING
+
+%% errors of backtracked model
+
+load("BC_SV40_from_JKn_2024_exh_t120_MRSE_0.1_Inf_linear_dynpnegenv_bintermediate.mat")
+redconfig_24_state_backwards = backwards_mor.configs(end, :);
+errors = zeros(Npop, 1);
+for i = 1:Npop
+    [obj, ~, ~, ~, ~] = objfun(model.t_ref, X_ref_var_ss{i}, virtual_pop_par_initials_ss(i, :)', virtual_pop_par(i, :)', model.I, [], model.param, model.multiple, model.odefun, model.jacfun, redconfig_24_state_backwards, "MRSE");
+    errors(i) = obj.errout;
+end
+max(errors)
+mean(errors)
+sum(errors < 0.1)
+
+%% remaining states
+
+config = backwards_mor.configs(end, :);
+
+model.I.nmstate(config == "dyn")

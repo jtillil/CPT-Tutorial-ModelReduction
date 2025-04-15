@@ -15,6 +15,7 @@ classifs_to_consider = mor_options.classifs_to_consider;
 saveroot = mor_options.saveroot;
 errtype = mor_options.errtype;
 variability = mor_options.variability;
+var_obj_prctile = mor_options.var_obj_prctile;
 % virtual_pop = mor_options.virtual_pop;
 virtual_pop_par = mor_options.virtual_pop_par;
 virtual_pop_X0 = mor_options.virtual_pop_X0;
@@ -49,9 +50,9 @@ while true
     % calculate all objective values
     objfun_startTime = tic;
     if log_required
-        [test_objvals, log] = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop_X0, virtual_pop_par, X_ref_var, log);
+        [test_objvals, log] = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, var_obj_prctile, virtual_pop_X0, virtual_pop_par, X_ref_var, log);
     else
-        test_objvals = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, virtual_pop_X0, virtual_pop_par, X_ref_var);
+        test_objvals = objfun_vectorized(model, test_configs, statefromtoreduced, timeout, errtype, variability, var_obj_prctile, virtual_pop_X0, virtual_pop_par, X_ref_var);
     end
     objfun_time = toc(objfun_startTime);
 
@@ -158,12 +159,6 @@ while true
     %     remaining_additional_dyn_reductions = max_additional_dyn_reductions;
     % end
 
-    % stop if test_objvals suddenly below error bounds
-    if test_objvals(1,2) <= relerrTOL_out && test_objvals(1,3) <= relerrTOL_int
-        fprintf('\nFinished after relative errors back below error bounds.');
-        break;
-    end
-
     % save at suitable iterations
     % if log_required
     %     save(['results/' saveroot '_intermediate.mat'], 'backwards_mor', 'mor_options', 'log');
@@ -173,6 +168,12 @@ while true
 
     % set next lastconfig
     % lastconfig = test_configs(best_indx, :);
+
+    % stop if test_objvals suddenly below error bounds
+    if test_objvals(1,2) <= relerrTOL_out && test_objvals(1,3) <= relerrTOL_int
+        fprintf('\nFinished after relative errors back below error bounds.');
+        break;
+    end
 end
 
 end
