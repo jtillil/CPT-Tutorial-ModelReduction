@@ -1,34 +1,43 @@
-%%% Version: 19 Jan 2023
+%%% Version: March 30th, 2020
 %%%
-%%% call by: [ir, contr, obs] = compute_ir_indices(model)
+%%% call by: [ir,contr,obs]  =  compute_ir_indices(model)
 %%%
 %%% This function computes the sensitivity based input-response indices for
 %%% the given model
 %%%
-%%% Input:  model               structure specifying the model
-%%%         saveresults         1 = yes, 0 = no
+%%% Input: model                structure specifying the model
 %%%
 %%% Output: ir                  input-response index 
 %%%         contr               controllability index
 %%%         obs                 observability index
 %%%
+%%% Citation:
+%%% 
+%%% Knoechel, Kloft and Huisinga, "Sensitivity based input-response index to 
+%%% analyse and reduce large-scale signalling networks"
+%%% PLOS Comp. Biology, 2020 (under review)
 %%%
 %%% Authors: Jane Knoechel and Wilhelm Huisinga
 %%%
 
-function [ir, contr, obs] = compute_ir_indices(model,saveresults)
+function [ir,contr,obs]  =  compute_ir_indices(model)
 
 tic;
-fprintf('\n Calculate ir, contr & obs indices \n');
+fprintf('\n 1st step - calculate indices \n');
 
 % indexing
 I = model.I;
 
 % check, whether classification of states is supported
-if ~isempty(setxor(I.dyn,1:I.nstates))
-    fprintf('\n\n --> ir indices are only computed for models with all states characterised as dynamic; PLEASE FIX! \n\n'); beep; 
-    return;
-end
+% if ~isempty([I.env, I.neg, I.qss, I.con])
+%     fprintf(['\n\n --> computation of ir indices not yet supporting ',...
+%         'anything else then dynamical states. \n    ',...
+%         'Therefore, all states are assumed to be dynamic for ir computation! \n\n']);
+% 
+%     % initialise classification of states for the detailed model
+%     I.dyn = 1:I.nstates; I.env = []; I.neg = []; I.qss = []; I.con = [];
+% 
+% end
 
 % ODE solver options and right hand side of ODE
 options.NonNegative = 1:I.nstates;
@@ -36,26 +45,19 @@ options.NonNegative = 1:I.nstates;
 if ~isempty(model.jacfun)
     options.JPattern = extodejacpatfun(model);
 end
-% options.AbsTol = 1e-4;
-% options.RelTol = 1e-2;
-% extoptions = options;
-% extoptions.NonNegative = 1:(I.nstates*I.nstates + I.nstates);
 
 % time vectors
-t_ref  = model.t_ref; X_ref = model.X_ref;
+t_ref  = model.t_ref;
 ntstar = length(t_ref); % number (n) of tstar values
 
 % Initialise variables necessary for analysis
-% ir.index    = zeros(ntstar,I.nstates);
-% contr.index = zeros(ntstar,I.nstates);
-% obs.index   = zeros(ntstar,I.nstates);
-tmpir       = zeros(ntstar,I.nstates);
-tmpcontr    = zeros(ntstar,I.nstates);
-tmpobs      = zeros(ntstar,I.nstates);
+ir          = zeros(ntstar,I.nstates);
+contr       = zeros(ntstar,I.nstates);
+obs         = zeros(ntstar,I.nstates);
 
 % give information about progress of computation
-inform = true; 
-if inform, fprintf(' Progress report: solve extODE ... '); end
+inform = 1; 
+if inform, fprintf(' Progress report: %d,',ntstar); end
 
 % Set initial value for extended ODE system, containing the ODEs of the
 % state variables with indices [1:I.nstates] and the ODEs of the Jacobian 
@@ -66,46 +68,31 @@ if inform, fprintf(' Progress report: solve extODE ... '); end
 % the vectorised output of the extended ODE system related to the Wronski 
 % matrix is again reshaped into matrix form
 
-% X0 = X_ref(1,:);        % initial condition of ODE system
-X0 = model.X0';
+x0 = model.X_ref(1,:); % initial condition of ODE system
 W0 = eye(I.nstates);    % initial condition of Wronski matrix equation
-extX0 = [X0'; W0(:)];   % initial condition of extended ODE system
+extX0 = [x0'; W0(:)];    % initial condition of extended ODE system
 
 % solving the extended ODE system to obtain J_u(0,t*), including reshaping
 % the output to obtain Jacobian in matrix form (see above)
 [~,extX_ref]  = ode15s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
-% [~,extX_ref]  = ode23s(@(t,X) extodefun(t,X,model.par,model), t_ref, extX0, options);
 
-% decompose extended state vector into states and Wronski matrix; initial
-% 'e' indicates that X_ref and eX_ref can be expected to differ due to the
-% different ODEs used to determine it (original vs. extended ODE)
-eX_ref = extX_ref(:,1:I.nstates);
-eW_ref = extX_ref(:,I.nstates+1:end);
+% decompose extended state vector into states and Wronski matrix
+X_ref = extX_ref(:,1:I.nstates);
+W_ref = extX_ref(:,I.nstates+1:end);
 
 %%% define Jacobian J_u(t*,t0)
-Jac_u = permute(reshape(eW_ref,length(t_ref),I.nstates,I.nstates),[2,3,1]);
+Jac_u = permute(reshape(W_ref,length(t_ref),I.nstates,I.nstates),[2,3,1]);
 
-%%% states to determine the indices for
-relevantstates = 1:I.nstates;
 
-%%% only for testing purposes
-% if model.quicktest
-%     relevantstates = I.output; ntstar = 3; beep;
-%     fprintf('\n --> quicktest running <-- \n')
-% end
-
-if inform, fprintf(' and for each t*: '); end
-parfor ts = 1:ntstar-1
-% for ts = 1:ntstar-1
-    
+for ts = 1:ntstar-1
+        
     if inform, fprintf('%d,',ntstar-ts); end
     
     % calculate J_y(t*,t), including reshaping the output to obtain Jacobian 
     % in matrix form (see above) 
     tstarspan  = t_ref(ts:end);
-    extX0_tstar = [eX_ref(ts,:)';W0(:)];
+    extX0_tstar = [X_ref(ts,:)';W0(:)];
     [t_tstar,extX_tstar]  = ode15s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
-    % [t_tstar,extX_tstar]  = ode23s(@(t,X) extodefun(t,X,model.par,model), tstarspan, extX0_tstar, options);
     
     W_tstar = extX_tstar(:,I.nstates+1:end);
     
@@ -114,29 +101,16 @@ parfor ts = 1:ntstar-1
 
     % calculate index at timepoint t*, including evaluation of an integral
     % for the observability index via the trapezoidal rule
-    for k = relevantstates
-        tmpobs(ts,k)   = sqrt( 1/t_ref(end) * trapz(t_tstar, Jac_y(I.output,k,:).^2) );
-        tmpcontr(ts,k) = abs( Jac_u(k,I.input,ts) );
-        tmpir(ts,k)    = tmpcontr(ts,k) * tmpobs(ts,k);
+    for k = 1:I.nstates
+        obs(ts,k)   = sqrt( 1/t_ref(end) * trapz(t_tstar, Jac_y(I.output,k,:).^2) );
+        contr(ts,k) = abs( Jac_u(k,I.input,ts) );
+        ir(ts,k)    = contr(ts,k) * obs(ts,k);
     end
-    % clear Jac_y extX_tstar
+    clear Jac_y extX_tstar
     
 end
-ir.index = tmpir;
-obs.index = tmpobs;
-contr.index = tmpcontr;
-elapsedtime = toc; fprintf('\n [elapsed time = %.1f]\n\n',elapsedtime);
 
-%%% compute normalized ir index
-ir.nindex = diag(1./sum(ir.index,2,'omitnan')) * ir.index;
-
-if saveresults
-    fprintf('  \n results saved in %s \n',[model.savenameroot 'ir/contr/obs_index.mat']);
-    indx = ir;    save([model.savenameroot '_ir_index.mat'],'indx','model')
-    indx = contr; save([model.savenameroot '_contr_index.mat'],'indx','model')
-    indx = obs;   save([model.savenameroot '_obs_index.mat'],'indx','model')
-end
-
+elapsedtime = toc; fprintf('\n[elapsed time = %.1f]\n\n',elapsedtime);
 end
 
 
@@ -146,7 +120,7 @@ end
 
 %%% -----------------------------------------------------------------------
 %%% extended ODE system to solve the sensitivity equations
-%%%
+
 function dextX = extodefun(t,extX,par,model)
 
 %%% assign model indexing
@@ -156,11 +130,7 @@ I  = model.I;
 X = extX(1:I.nstates);
 W = extX(I.nstates+1:end);
 
-if model.ode_is_matlabfun
-    dX = model.odefun(X,par);
-else
-    dX = model.odefun(t,X,par,model);
-end
+dX = model.odefun(t,X,par,model);
 
 %%% calculate wronski matrix
 W_matrix = reshape(W,I.nstates,I.nstates);
@@ -171,11 +141,7 @@ if isempty(model.jacfun)
     dW_matrix = numjacfun(t,X,model) * W_matrix;
 else
     % use analytical jacobian
-    if model.ode_is_matlabfun
-        dW_matrix = model.jacfun(X,par) * W_matrix;
-    else
-        dW_matrix = model.jacfun(t,X,par,model) * W_matrix;
-    end
+    dW_matrix = model.jacfun(t,X,par,model) * W_matrix;
 end
 
 dextX = [dX;dW_matrix(:)];
@@ -207,7 +173,6 @@ end
 
 %%% -----------------------------------------------------------------------
 %%% defines the jacobian sparsity pattern of the extended ODE system 
-%%% (only used if no jacobian is provided)
 %%%
 function extodejacpat = extodejacpatfun(model)
 
@@ -219,11 +184,7 @@ extodejacpat = zeros(nstates+nstates^2);
 
 % initialize the jacobian 
 X_test = ones(model.I.nstates,1); % ok for this jacobian
-if model.ode_is_matlabfun
-    DF = model.jacfun(X_test,model.par);
-else
-    DF = model.jacfun(0,X_test,model.par,model);
-end
+DF = model.jacfun(0,X_test,model.par,model);
 
 % check if there are NaN or Inf entries
 if any(isinf(DF),'all') || any(isnan(DF),'all')
@@ -244,5 +205,3 @@ end
 
 extodejacpat = sparse(extodejacpat);
 end
-
-

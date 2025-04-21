@@ -171,6 +171,98 @@ set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, wid
 
 exportgraphics(gcf, "./figures/SPP_with_crosstalk_non_ir_C.pdf")
 
+%% Parallel Pathways: Scenario 3 - C B neglectable
+load("modelSPP_C_B_neglectable_full.mat")
+
+% reference solution
+figure
+semilogy(model.t_ref, model.X_ref, 'LineWidth', lw) %DisplayName', plotnames(i))
+xlim([-0.002 0.052])
+ylim([1e-3 1e4])
+legend('A', 'S', 'B', 'C', 'D', 'Location','northeast')
+xlabel("t [min]")
+ylabel("concentration [nM]")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/SPP_C_B_neglectable_ref_sol.pdf")
+
+% nir-indices
+figure
+plot(model.t_ref, model.ir.nindex, 'LineWidth', lw) %DisplayName', plotnames(i))
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-0.002 0.052])
+ylim([-0.01 1])
+legend('A', 'S', 'B', 'C', 'D', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("nir-index")
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/SPP_C_B_neglectable_ir.pdf")
+
+% non ir-indices B
+figure
+hold on
+semilogy(model.t_ref, model.env.nindex(:, model.I.B), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pss.nindex(:, model.I.B), 'LineStyle', '--', 'LineWidth', lw)
+semilogy(model.t_ref, model.cneg.nindex(:, model.I.B), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pneg.nindex(:, model.I.B), 'LineStyle', '--', 'LineWidth', lw)
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-0.002 0.052])
+ylim([5e-4 1e1])
+set(gca, 'YScale', 'log')
+box on
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("normalised index")
+hold off
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/SPP_C_B_neglectable_non_ir_B.pdf")
+
+% non ir-indices C
+figure
+hold on
+semilogy(model.t_ref, model.env.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pss.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
+semilogy(model.t_ref, model.cneg.nindex(:, model.I.C), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pneg.nindex(:, model.I.C), 'LineStyle', '--', 'LineWidth', lw)
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-0.002 0.052])
+ylim([5e-4 1e1])
+set(gca, 'YScale', 'log')
+box on
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("normalised index")
+% hold off
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/SPP_C_B_neglectable_non_ir_C.pdf")
+
+% non ir-indices S
+figure
+hold on
+semilogy(model.t_ref, model.env.nindex(:, model.I.S), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pss.nindex(:, model.I.S), 'LineStyle', '--', 'LineWidth', lw)
+semilogy(model.t_ref, model.cneg.nindex(:, model.I.S), 'LineStyle', '-', 'LineWidth', lw)
+semilogy(model.t_ref, model.pneg.nindex(:, model.I.S), 'LineStyle', '--', 'LineWidth', lw)
+yline(0.1, 'k--', 'LineWidth', lwt)
+xlim([-0.002 0.052])
+ylim([5e-4 1e1])
+set(gca, 'YScale', 'log')
+box on
+legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+xlabel("t [min]")
+ylabel("normalised index")
+% hold off
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/SPP_C_B_neglectable_non_ir_S.pdf")
 
 %% Enzyme Kinetics: Scenario 1 - Cpss Eenv
 load("modelMMEK_Cpss_Eenv_full.mat")

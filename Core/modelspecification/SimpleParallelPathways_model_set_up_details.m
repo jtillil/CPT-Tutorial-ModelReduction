@@ -48,6 +48,19 @@ switch model.scenario
         model.setup.k_cd  = 11;
 
         model.setup.tspan = [0 0.05];  % in [min]
+    case 'C_B_neglectable'
+        fac = 300;
+        model.setup.S     = 10*fac; 
+        model.setup.k_ab  = 1/fac;
+        model.setup.k_b  = 300;
+        
+        model.setup.k_ac  = 1/fac;
+        model.setup.k_c  = 300;
+
+        model.setup.k_bd  = 2;
+        model.setup.k_cd  = 2;
+
+        model.setup.tspan = [0 0.05];  % in [min]
     otherwise
         fprintf('\n\n  --> Scenarios %s currently not supported!---PLEASE FIX! \n\n',model.scenario); error(' :-)');
 end

@@ -28,10 +28,10 @@ X0(I.B)   = 0;
 X0(I.C)   = 0; 
 X0(I.D)   = 0; 
 
-switch model.scenario
-    case {'no_crosstalk','with_crosstalk'}
+% switch model.scenario
+%     case {'no_crosstalk','with_crosstalk'}
         X0(I.S) = model.setup.S;
-end
+% end
 
 
 end

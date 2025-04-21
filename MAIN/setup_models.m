@@ -7,8 +7,8 @@ config.non_ir   = true;
 config.analyze  = true;
 
 %% parallel pathways
-% name = 'SimpleParallelPathways';
-% namesimple = 'SPP';
+name = 'SimpleParallelPathways';
+namesimple = 'SPP';
 % scenario = 'no_crosstalk';
 % 
 % setupModel(name, namesimple, scenario, config)
@@ -16,6 +16,10 @@ config.analyze  = true;
 % scenario = 'with_crosstalk';
 % 
 % setupModel(name, namesimple, scenario, config)
+
+scenario = 'C_B_neglectable';
+
+setupModel(name, namesimple, scenario, config)
 
 %% enzyme kinetics
 % name = 'MMEnzymeKinetics';
