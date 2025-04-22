@@ -51,11 +51,11 @@ switch model.scenario
     case 'C_B_neglectable'
         fac = 300;
         model.setup.S     = 10*fac; 
-        model.setup.k_ab  = 1/fac;
-        model.setup.k_b  = 300;
+        model.setup.k_ab  = 10/fac;
+        model.setup.k_b  = 500;
         
-        model.setup.k_ac  = 1/fac;
-        model.setup.k_c  = 300;
+        model.setup.k_ac  = 10/fac;
+        model.setup.k_c  = 500;
 
         model.setup.k_bd  = 2;
         model.setup.k_cd  = 2;
