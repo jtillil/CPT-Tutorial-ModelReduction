@@ -50,11 +50,15 @@ switch model.scenario
         model.setup.tspan = [0 0.05];  % in [min]
     case 'C_B_neglectable'
         fac = 300;
+        % fac = 10;
         model.setup.S     = 10*fac; 
+        % model.setup.S     = 10; 
         model.setup.k_ab  = 10/fac;
+        % model.setup.k_ab  = 10;
         model.setup.k_b  = 500;
         
         model.setup.k_ac  = 10/fac;
+        % model.setup.k_ac  = 10;
         model.setup.k_c  = 500;
 
         model.setup.k_bd  = 2;
