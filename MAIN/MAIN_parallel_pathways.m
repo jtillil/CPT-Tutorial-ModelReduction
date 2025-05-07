@@ -94,6 +94,13 @@ config(model.I.B) = "ssenv";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_ssenv(1,1) = obj.errout;
 
+% B cneg C pss
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.B) = "cneg";
+config(model.I.C) = "pss";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.B_cneg_C_pss(1,1) = obj.errout;
+
 % B pss C pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.B) = "pss";
@@ -227,6 +234,13 @@ config(model.I.B) = "ssenv";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_ssenv(1,2) = obj.errout;
 
+% B cneg C pss
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.B) = "cneg";
+config(model.I.C) = "pss";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.B_cneg_C_pss(1,2) = obj.errout;
+
 % B pss C pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.B) = "pss";
@@ -331,6 +345,13 @@ config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.B) = "ssenv";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_ssenv(1,3) = obj.errout;
+
+% B cneg C pss
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.B) = "cneg";
+config(model.I.C) = "pss";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.B_cneg_C_pss(1,3) = obj.errout;
 
 % B pss C pss
 config = repmat("dyn", [1 model.I.nstates]);

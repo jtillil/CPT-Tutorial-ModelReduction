@@ -107,14 +107,14 @@ model.I.nmstate(config == "pss")
 max(model.pneg.nindex(:, model.I.TFPI))
 max(model.pneg.nindex(:, model.I.VK))
 
-%% Reduce model with index analysis
+%% Reduce model with index analysis (Tutorial scheme where only lowst index important + rel state err
 
 % load model
 load("modelBC_SV40_from_JKn_2024.mat")
 
 % initialize config and threshold
 config = repmat("dyn", [1, model.I.nstates]);
-t = 0.05;
+t = 0.1;
 
 errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
 
@@ -159,6 +159,62 @@ if ir <  t && minscindices < t
     end
 end
 
+% simplification iteration 1
+if config(i) == "env_bad_approx"
+    scindices = [pneg cneg pss];
+    [minscindices, idxminscindices] = min(scindices);
+    if minscindices < t
+        if idxminscindices == 1
+            config(i) = "pneg";
+        elseif idxminscindices == 2
+            config(i) = "cneg";
+        elseif idxminscindices == 3
+            if pssrel >= t
+                config(i) = "pss_bad_approx";
+            else
+                config(i) = "pss";
+            end
+        end
+    else
+        config(i) = "unclassified";
+    end
+end
+
+if config(i) == "pss_bad_approx"
+    scindices = [pneg cneg env];
+    [minscindices, idxminscindices] = min(scindices);
+    if minscindices < t
+        if idxminscindices == 1
+            config(i) = "pneg";
+        elseif idxminscindices == 2
+            config(i) = "cneg";
+        elseif idxminscindices == 3
+            if envrel >= t
+                config(i) = "env_bad_approx";
+            else
+                config(i) = "env";
+            end
+        end
+    else
+        config(i) = "unclassified";
+    end
+end
+
+% simplification iteration 2
+if config(i) == "env_bad_approx" || config(i) == "pss_bad_approx"
+    scindices = [pneg cneg];
+    [minscindices, idxminscindices] = min(scindices);
+    if minscindices < t
+        if idxminscindices == 1
+            config(i) = "pneg";
+        elseif idxminscindices == 2
+            config(i) = "cneg";
+        end
+    else
+        config(i) = "unclassified";
+    end
+end
+
 end
 
 % correct reduction
@@ -172,7 +228,7 @@ end
 % [err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
 
 % show results
-disp(err_index.errout)
+% disp(err_index.errout)
 disp(sum(config == "dyn"))
 disp(sum(config == "env"))
 disp(sum(config == "env_bad_approx"))
@@ -180,6 +236,17 @@ disp(sum(config == "pneg"))
 disp(sum(config == "cneg"))
 disp(sum(config == "pss"))
 disp(sum(config == "pss_bad_approx"))
+disp(sum(config == "unclassified"))
+
+% pneg indices of env and pss classified states
+max(model.pneg.nindex(:, config == "env"))
+max(model.pneg.nindex(:, config == "pss"))
+
+% number of states where approaches are appropriate
+sum(max(model.pneg.nindex) < 0.1)
+sum(max(model.cneg.nindex) < 0.1)
+sum(max(model.env.nindex) < 0.1)
+sum(max(model.pss.nindex) < 0.1)
 
 %% plot index-reduced model
 

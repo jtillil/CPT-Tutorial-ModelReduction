@@ -408,3 +408,26 @@ set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, wid
 
 exportgraphics(gcf, "./figures/MMEK_Cpss_EpCenv_non_ir_C.pdf")
 
+%% figures for BioRender graphics
+
+% ordered ir indices
+states = 1:12;
+ind = ((13 - states)/12).^4;
+
+figure
+hold on
+b = bar(states, ind, 'FaceColor', "#0072BD");
+yline(0.15, 'k--', 'LineWidth', 1)
+xlim([0.3 12.7])
+% ylim([5e-4 1e1])
+% set(gca, 'YScale', 'log')
+box on
+% legend('const', 'qss', 'cneg', 'pneg', 'threshold', 'Location','northeast')
+xlabel("ordered states")
+ylabel("max normalised ir index")
+hold off
+
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex+2, sizey]); % [x, y, width, height]
+
+exportgraphics(gcf, "./figures/BioRender_ordered_ir_indices.png")
+
