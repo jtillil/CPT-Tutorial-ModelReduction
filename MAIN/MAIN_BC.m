@@ -107,7 +107,7 @@ model.I.nmstate(config == "pss")
 max(model.pneg.nindex(:, model.I.TFPI))
 max(model.pneg.nindex(:, model.I.VK))
 
-%% Reduce model with index analysis (Tutorial scheme where only lowst index important + rel state err
+%% Reduce model with index analysis (Tutorial scheme where only lowest index important + rel state err)
 
 % load model
 load("modelBC_SV40_from_JKn_2024.mat")

@@ -1,13 +1,17 @@
-%% load good reduced model
+%% Setup
+clear; clc;
+addpath(genpath("../../CPT-Tutorial-ModelReduction"))
+reduced_errors = struct;
 
-load('modelEGFR_exh_t120_0.1_0.5_linear_dyncnegpnegirenv_geomenvpss.mat')
+%% load good reduced model
+load('modelEGFR_exh_t120_MRSE_0.1_0.5_linear_dyncnegpnegenvirenv_geompss.mat')
 model = redmodel;
-model.redobj.redconfig = model.exhaustive_mor.configs(model.exhaustive_mor.objvals(:, 2) == model.redobj.errout, :);
+config = model.exhaustive_mor.configs(model.exhaustive_mor.objvals(:, 2) == model.redobj.errout, :);
 
 %% code pss states into index-reduced model
 
 % obtain pss states
-I_red = config2I(model.I, redmodel.exhasutice_mr, []);
+I_red = config2I(model.I, config, []);
 
 % create symbolic variables
 syms t;
@@ -17,14 +21,16 @@ X_sym = cell2sym(model.I.nmstate(:));
 % make odefun symbolic
 tic
 odefun_symbolic = model.odefun(X_sym,par_sym);
-disp(toc)
+toc
 
 nm_X_pss = model.I.nmstate(config == "pss");
 X_sym_pss = X_sym(config == "pss");
 odefun_symbolic_pss = odefun_symbolic(config == "pss");
 
 % solve pss states
-G = solve(odefun_symbolic_pss, X_sym_pss);
+tic
+G = solve(odefun_symbolic_pss, X_sym_pss, 'IgnoreAnalyticConstraints', true);
+toc
 
 % input solved states to ODEs
 for k = 1:length(X_sym_pss)
@@ -46,7 +52,7 @@ for i = 1:model.I.nstates
         jacfun_symbolic_solved(i, j) = diff(odefun_symbolic(i), X_sym(j));
     end
 end
-disp(toc)
+toc
 
 % convert to matlabfun and insert to model
 model.odefun = matlabFunction(odefun_symbolic_solved,'Vars',{X_sym,par_sym});
@@ -57,3 +63,9 @@ model.jac = model.jacfun;
 % update I
 model.I.pss_solved = model.I.pss;
 model.I.pss = [];
+
+%% check pss solved greedy reduced EGFR model
+
+config(config == "pss") = "pneg";
+model.I = config2I(model.I, config, []);
+[err_index_solved, ~, tred_solved, Xred_solved] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
