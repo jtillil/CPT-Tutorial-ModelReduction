@@ -27,22 +27,47 @@ nm_X_pss = model.I.nmstate(config == "pss");
 X_sym_pss = X_sym(config == "pss");
 odefun_symbolic_pss = odefun_symbolic(config == "pss");
 
-% solve pss states
-tic
-G = solve(odefun_symbolic_pss, X_sym_pss, 'IgnoreAnalyticConstraints', true);
-toc
-
-% input solved states to ODEs
-for k = 1:length(X_sym_pss)
-    solutions = G.(nm_X_pss{k});
-    odefun_symbolic_solved = subs(odefun_symbolic, X_sym_pss(k), solutions(1));
-end
-
-% remove solved state ODEs
-odefun_symbolic_solved(config == "pss") = 0;
-
-% simplify solved ODEs
+% condition ODEs
+odefun_symbolic_solved = odefun_symbolic;
+odefun_symbolic_solved(config == "pneg") = 0;
+odefun_symbolic_solved(config == "cneg") = 0;
+odefun_symbolic_solved(config == "env") = 0;
+odefun_symbolic_solved(config == "irenv_geom") = 0;
+odefun_symbolic_solved(config == "irenv_arith") = 0;
 odefun_symbolic_solved = simplify(odefun_symbolic_solved);
+
+% % solve pss states
+% tic
+% G = solve(odefun_symbolic_pss, X_sym_pss, 'IgnoreAnalyticConstraints', true);
+% toc
+% 
+% % input solved states to ODEs
+% for k = 1:length(X_sym_pss)
+%     solutions = G.(nm_X_pss{k});
+%     odefun_symbolic_solved = subs(odefun_symbolic, X_sym_pss(k), solutions(1));
+% end
+% 
+% % simplify solved ODEs
+% odefun_symbolic_solved = simplify(odefun_symbolic_solved);
+
+% solve pss states iteratively
+id_states = 1:model.I.nstates;
+id_pss = id_states(config == "pss");
+for k = 1:length(X_sym_pss)
+    disp(k)
+    tic
+    G = solve(odefun_symbolic_pss(k), X_sym_pss(k), 'IgnoreAnalyticConstraints', false);
+    toc
+    
+    % input solved states to ODEs
+    tic
+    solutions = G(end);
+    odefun_symbolic_solved = simplify(subs(odefun_symbolic_solved, X_sym_pss(k), solutions(1)));
+    toc
+    
+    % remove solved state ODEs
+    odefun_symbolic_solved(id_pss(k)) = 0;
+end
 
 % differentiate jac with solved ODEs
 tic
