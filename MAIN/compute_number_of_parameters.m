@@ -1,6 +1,11 @@
+load("modelEGFR_minimal");
+config = redmodel.exhaustive_mor.configs(253, :);
+
 %% setup
+config = redmodel.redobj.redconfig;
 
 model.multiple.multiple = false;
+model.I = config2I(model.I, config, []);
 
 par = model.par;
 num_par = 0;
