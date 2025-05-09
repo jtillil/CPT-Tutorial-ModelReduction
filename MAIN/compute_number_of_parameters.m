@@ -1,8 +1,8 @@
 load("modelEGFR_minimal");
-config = redmodel.exhaustive_mor.configs(253, :);
+% config = redmodel.exhaustive_mor.configs(253, :);
 
 %% setup
-config = redmodel.redobj.redconfig;
+% config = redmodel.redobj.redconfig;
 
 model.multiple.multiple = false;
 model.I = config2I(model.I, config, []);
@@ -78,3 +78,5 @@ for i = 1:length(par)
         disp(max_rel_err_double)
     end
 end
+
+num_par_and_const = num_par + nenv + ngeom + narith;
