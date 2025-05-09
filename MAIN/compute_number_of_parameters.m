@@ -1,5 +1,5 @@
 load("modelEGFR_minimal");
-% config = redmodel.exhaustive_mor.configs(253, :);
+config = redmodel.exhaustive_mor.configs(427, :);
 
 %% setup
 % config = redmodel.redobj.redconfig;
