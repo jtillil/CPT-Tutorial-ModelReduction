@@ -81,8 +81,8 @@ end
 
 % recursively check futures and stop those that ran too long
 while 1
-    % pause for 5 seconds between checks
-    pause(5)
+    % pause for 0.1 seconds between checks
+    pause(0.1)
 
     % get future states
     states = {f.State};
