@@ -1,9 +1,16 @@
 %% Setup
 clear; clc;
 addpath(genpath("../../../CPT-Tutorial-ModelReduction"))
-size = 12;
+size = 10;
+sizex = 10;
+sizey = 8;
 lw = 1;
 lwt = 0.5;
+interpreter = 'latex';
+% Set default interpreter to LaTeX
+set(groot, 'defaultTextInterpreter', interpreter);
+set(groot, 'defaultAxesTickLabelInterpreter', interpreter);
+set(groot, 'defaultLegendInterpreter', interpreter);
 
 %% Blood Coagulation: 40h Wajima 2009
 load("modelBC_SV40_from_JKn_2024.mat")
@@ -20,12 +27,13 @@ for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
 end
 xlim([-2 42])
 ylim([1e-7 5e4])
-legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'southeast')
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'eastoutside')
 xlabel("t [h]")
 ylabel("concentration [nmol/L]")
 yscale('log')
 box on
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+% set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/BC_SV40_ref_sol.pdf")
 
@@ -40,12 +48,13 @@ for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
 end
 xlim([-0.005 0.155])
 ylim([1e-7 5e4])
-legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'southeast')
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'eastoutside')
 xlabel("t [h]")
 ylabel("concentration [nmol/L]")
 yscale('log')
 box on
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+% set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/BC_SV40_ref_sol_015h.pdf")
 
@@ -62,11 +71,13 @@ yline(0.1, 'k--', 'LineWidth', lwt)
 % xlim([-0.14 4.15])
 xlim([-0.3 10.3])
 ylim([-0.01 1])
-legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'east')
-xlabel("t [h]")
-ylabel("nir-index")
+legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'eastoutside')
+xlabel("$t^\ast$ [h]")
+% ylabel("nir-index")
+ylabel("$ir_i(t^\ast)$")
 box on
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+% set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/BC_SV40_ir.pdf")
 
@@ -79,15 +90,19 @@ end
 for i = 8:length(model.analysis.ir.I_sorted_max_nindex_above_threshold)
     plot(model.t_ref, model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex_above_threshold(i)), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
 end
+plot(model.t_ref, model.ir.nindex(:, model.I.IIa), '--', 'LineWidth', lw) %DisplayName', plotnames(i))
 yline(0.1, 'k--', 'LineWidth', lwt)
 % xlim([-0.14 4.15])
 xlim([-0.005 0.155])
 ylim([-0.01 1])
-legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'northeast')
-xlabel("t [h]")
-ylabel("nir-index")
+legend([model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), "IIa"], 'Location', 'eastoutside')
+% legend(model.I.nmstatelegend(model.analysis.ir.I_sorted_max_nindex_above_threshold), 'Location', 'eastoutside')
+xlabel("$t^\ast$ [h]")
+% ylabel("nir-index")
+ylabel("$ir_i(t^\ast)$")
 box on
-set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+% set(gcf, 'Units', 'centimeters', 'Position', [0, 0, size, size]); % [x, y, width, height]
+set(gcf, 'Units', 'centimeters', 'Position', [0, 0, sizex, sizey]); % [x, y, width, height]
 
 exportgraphics(gcf, "./figures/BC_SV40_ir_015h.pdf")
 

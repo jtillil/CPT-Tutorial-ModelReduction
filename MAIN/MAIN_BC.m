@@ -21,7 +21,7 @@ load("modelBC_SV40_from_JKn_2024.mat")
 
 % initialize config and threshold
 config = repmat("dyn", [1, model.I.nstates]);
-t = 0.05;
+t = 0.1;
 
 errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
 
@@ -114,7 +114,7 @@ load("modelBC_SV40_from_JKn_2024.mat")
 
 % initialize config and threshold
 config = repmat("dyn", [1, model.I.nstates]);
-t = 0.1;
+t = 0.109;
 
 errfun = @(t_ref,X_ref,X_red) sqrt( trapz(t_ref,(X_ref - X_red).^2,1) ) ./ sqrt( trapz(t_ref,X_ref.^2,1) );
 
@@ -230,13 +230,17 @@ end
 % show results
 % disp(err_index.errout)
 disp(sum(config == "dyn"))
+model.I.nmstate(config == "dyn")
 disp(sum(config == "env"))
+model.I.nmstate(config == "env")
 disp(sum(config == "env_bad_approx"))
 disp(sum(config == "pneg"))
 disp(sum(config == "cneg"))
 disp(sum(config == "pss"))
+model.I.nmstate(config == "pss")
 disp(sum(config == "pss_bad_approx"))
 disp(sum(config == "unclassified"))
+model.I.nmstate(config == "unclassified")
 
 % pneg indices of env and pss classified states
 max(model.pneg.nindex(:, config == "env"))
@@ -247,6 +251,11 @@ sum(max(model.pneg.nindex) < 0.1)
 sum(max(model.cneg.nindex) < 0.1)
 sum(max(model.env.nindex) < 0.1)
 sum(max(model.pss.nindex) < 0.1)
+sum(max(model.env.nindex) < 0.1 & max(model.env.relstateerr) < 0.1)
+model.I.nmstate(max(model.env.nindex) < 0.1)
+model.I.nmstate(max(model.env.nindex) < 0.1 & max(model.env.relstateerr) < 0.1)
+sum(max(model.pss.nindex) < 0.1 & max(model.pss.relstateerr) < 0.1)
+model.I.nmstate(max(model.pss.nindex) < 0.1 & max(model.pss.relstateerr) < 0.1)
 
 %% plot index-reduced model
 

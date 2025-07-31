@@ -115,6 +115,14 @@ config(model.I.C) = "cneg";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_cneg_C_cneg(1,1) = obj.errout;
 
+% S env C cneg
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.S) = "env";
+config(model.I.C) = "cneg";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.S_env_C_cneg(1,1) = obj.errout;
+
+
 %% Scenario 1 - no crosstalk C pss ir-indices
 % load("modelSPP_no_crosstalk_full.mat")
 % model.multiple.multiple = 0;
@@ -255,6 +263,13 @@ config(model.I.C) = "cneg";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_cneg_C_cneg(1,2) = obj.errout;
 
+% S env C cneg
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.S) = "env";
+config(model.I.C) = "cneg";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.S_env_C_cneg(1,2) = obj.errout;
+
 %% Scenario 3 - C and B neglectable
 % load model file
 load("modelSPP_C_B_neglectable_full.mat")
@@ -367,5 +382,46 @@ config(model.I.C) = "cneg";
 obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
 reduced_errors.B_cneg_C_cneg(1,3) = obj.errout;
 
+% S env C cneg
+config = repmat("dyn", [1 model.I.nstates]);
+config(model.I.S) = "env";
+config(model.I.C) = "cneg";
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+reduced_errors.S_env_C_cneg(1,3) = obj.errout;
+
 %% Save results
 save("./results/errors_SPP.mat", "reduced_errors")
+
+%% reduced indices - no crosstalk
+load("modelSPP_no_crosstalk_full.mat")
+model.multiple.multiple = 0;
+
+config = repmat("dyn", [model.I.nstates, 1]);
+config(model.I.C == 'cneg');
+config(model.I.S == 'env');
+model.I = config2I(model.I, config, []);
+
+[ir, contr, obs] = compute_ir_indices_matlabfun(model);
+
+save("indices_SPP_no_crosstalk_red.mat", "ir", "contr", "obs")
+
+%% reduced indices - with crosstalk
+load("modelSPP_with_crosstalk_full.mat")
+model.multiple.multiple = 0;
+
+config = repmat("dyn", [model.I.nstates, 1]);
+config(model.I.C == 'cneg');
+model.I = config2I(model.I, config, []);
+
+[ir, contr, obs] = compute_ir_indices_matlabfun(model);
+
+save("indices_SPP_with_crosstalk_red_correct.mat", "ir", "contr", "obs")
+
+config = repmat("dyn", [model.I.nstates, 1]);
+config(model.I.B == 'cneg');
+% config(model.I.C == 'cneg');
+model.I = config2I(model.I, config, []);
+
+[ir, contr, obs] = compute_ir_indices_matlabfun(model);
+
+save("indices_SPP_with_crosstalk_red_wrong.mat", "ir", "contr", "obs")
