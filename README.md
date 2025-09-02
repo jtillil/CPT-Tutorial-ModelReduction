@@ -51,7 +51,7 @@ To apply index-guided model order reduction with the algorithm supplied in [Knö
  - Make the "/MAIN" folder your working directory.
  - Load your "model" struct into the workspace.
  - Run "redmodel = mor_sequential_JKn_2018(model)" to reduce the model with the above-mentioned algorithm, using the sequence given by the ir-indices.
- - The reduction process and reduced model structure are documented in the console.
+ - The reduction process and reduced model structure are documented in the console and saved in the newly created "redmodel" struct.
 
 ### 4 Compute ir-indices of the reduced model for validation
 
