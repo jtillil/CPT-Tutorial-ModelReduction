@@ -50,7 +50,7 @@ To apply index analysis to obtain insight into the model dynamics and guide the 
 To apply index-guided model order reduction with the algorithm supplied in [Knöchel et. al. 2018], follow these steps:
  - Make the "/MAIN" folder your working directory.
  - Load your "model" struct into the workspace.
- - Run "redmodel = mor_sequential_JKn_2018(model)" to compute the ir and state-classification indices and relative state approximation errors to setup the "model" struct for further application of model order reduction.
+ - Run "redmodel = mor_sequential_JKn_2018(model)" to reduce the model with the above-mentioned algorithm, using the sequence given by the ir-indices.
  - The reduction process and reduced model structure are documented in the console.
 
 ### 4 Compute ir-indices of the reduced model for validation
