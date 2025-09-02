@@ -6,7 +6,7 @@ Link to the publication: doi/...
 
 ## How to reproduce results and figures
 
-To reproduce the results and figures presented in the tutorial, run the "MAIN.m" script located in the "~/MAIN" folder while having the "~/MAIN" folder as your working directory.
+To reproduce the results and figures presented in the tutorial, run the "MAIN.m" script located in the "~\MAIN" folder while having the "~\MAIN" folder as your working directory.
 
 ## How to apply the presented methods
 
