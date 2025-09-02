@@ -10,7 +10,7 @@ To reproduce the results and figures presented in the tutorial, run the "MAIN.m"
 
 ## How to apply the presented methods
 
-Applying all steps of index-guided model order reduction to a large QSP model can take a considerable amount of time if run on an unsuitable machine. To test the capabilities, you can follow the following workflow with the parallel pathways example model "modelSPP_with_crosstalk_full.mat" in the "/Core/modelfiles" folder.
+Applying all steps of index-guided model order reduction to a large QSP model can take a considerable amount of time if run on an unsuitable machine. To test the capabilities, you can follow the following workflow with the small parallel pathways example model "modelSPP_with_crosstalk_full.mat" in the "/Core/modelfiles" folder.
 
 ### 1 Setup your QSP model
 
