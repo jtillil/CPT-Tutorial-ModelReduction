@@ -10,6 +10,8 @@ To reproduce the results and figures presented in the tutorial, run the "MAIN.m"
 
 ## How to apply the presented methods
 
+Applying all steps of index-guided model order reduction to a large QSP model can take a considerable amount of time if run on an unsuitable machine. To test the capabilities, you can follow the following workflow with the parallel pathways example model found in ""
+
 ### 1 Setup your QSP model
 
 To be able to apply the presented model order reduction and index analysis framework, you first need to convert your QSP model into a compatible MATLAB struct, called "model", requiring the following fields:
