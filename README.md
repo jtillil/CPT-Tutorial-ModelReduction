@@ -37,7 +37,7 @@ model = create_minimal_model(model)
 ```
 to automatically create all additionally required fields.
 
-For a working example, load the saved model "modelBC_SV40_from_JKn_2024.mat" located in the "/Core/modelfiles" folder.
+For a working example, load the saved model "modelBC_SV40_from_JKn_2024.mat" located in the "/Core/modelfiles" folder. It contains the blood coagulation network with the brown snake venom-fibrinogen relationship analyzed in this tutorial.
 
 You will also be able to import your model from SBML (systems biology markup language) with the script "create_model_SBML.m" located in the "/Core/modelgeneration" folder. This capability is currently work in progress.
 
