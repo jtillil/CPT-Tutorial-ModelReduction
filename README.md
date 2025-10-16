@@ -31,11 +31,7 @@ To be able to apply the presented model order reduction and index analysis frame
  - **model.odefun** [function_handle]: function with inputs (X [model.I.nstates-by-1 double containing the state concentrations at time *t*], par [model.I.npar-by-1 double containing the parameter values at time *t*]), returning dX [model.I.nstates-by-1 vector containing the derivative of the states at time *t*]
  - **model.jacfun** [function_handle]: function with inputs (X [model.I.nstates-by-1 double containing the state concentrations at time *t*], par [model.I.npar-by-1 double containing the parameter values at time *t*]), returning dF [model.I.nstates-by-model.I.nstates matrix containing the jacobian of the ODEs at time *t*], required for improved stability and efficiency of the ODE solvers
 
-Then, run
-```
-model = create_minimal_model(model)
-```
-to automatically create all additionally required fields.
+Then, run ```model = create_minimal_model(model)``` to automatically create all additionally required fields.
 
 For a working example, load the saved model "modelBC_SV40_from_JKn_2024.mat" located in the "/Core/modelfiles" folder. It contains the blood coagulation network with the brown snake venom-fibrinogen relationship analyzed in this tutorial.
 
