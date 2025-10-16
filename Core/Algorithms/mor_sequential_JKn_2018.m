@@ -109,7 +109,8 @@ for k = seqofstates(ismember(seqofstates, redmodel.I.dyn))
             end
             config = config_env;
             redmodel.redobj = obj_env;
-            fprintf(' (env),')
+
+            fprintf(' (env, %d), ', err_red_env)
         else
             redmodel.I.dyn = setdiff(redmodel.I.dyn, k);
             redmodel.I.pneg = union(redmodel.I.pneg, k);
@@ -118,7 +119,7 @@ for k = seqofstates(ismember(seqofstates, redmodel.I.dyn))
             end
             config = config_pneg;
             redmodel.redobj = obj_pneg;
-            fprintf(' (pneg),')
+            fprintf(' (pneg, %d), ', err_red_pneg)
         end
     elseif err_red_env < relerrTOL
         redmodel.I.dyn = setdiff(redmodel.I.dyn, k);
@@ -128,9 +129,9 @@ for k = seqofstates(ismember(seqofstates, redmodel.I.dyn))
         end
         config = config_env;
         redmodel.redobj = obj_env;
-        fprintf(' (env),')
+        fprintf(' (env, %d), ', err_red_env)
     else
-        fprintf(' (dyn),')
+        fprintf(' (dyn), ')
     end
     
 end
@@ -183,9 +184,9 @@ for k = seqofstates(ismember(seqofstates, redmodel.I.dyn))
         end
         config = config_env;
         redmodel.redobj = obj_env;
-        fprintf(' (env),')
+        fprintf(' (env, %d), ', err_red_env)
     else
-        fprintf(' (dyn),')
+        fprintf(' (dyn), ')
     end
     
 end
@@ -238,9 +239,9 @@ for k = setdiff(seqofstates, redmodel.I.pneg, 'stable')
         end
         config = config_pneg;
         redmodel.redobj = obj_pneg;
-        fprintf(' (pneg),')
+        fprintf(' (pneg, %d), ', err_red_pneg)
     else
-        fprintf(' (dyn),')
+        fprintf(' (dyn), ')
     end
     
 end

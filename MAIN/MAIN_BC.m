@@ -1,6 +1,6 @@
 %% Setup
 clear; clc;
-addpath(genpath("../../jti-code"))
+addpath(genpath("../."))
 reduced_errors = struct;
 
 %% Calculate ir matlabfun
@@ -263,7 +263,7 @@ model.I.nmstate(max(model.pss.nindex) < 0.1 & max(model.pss.relstateerr) < 0.1)
 
 i = model.I.TFPI;
 i = model.I.X;
-% i = model.I.D;
+i = model.I.D;
 a = max(model.ir.nindex(:, i))
 b = max(model.env.nindex(:, i))
 c = max(model.pss.nindex(:, i))
@@ -273,6 +273,19 @@ e = max(model.pneg.nindex(:, i))
 ir = max(model.ir.index);
 sum(ir > 0)
 sum(ir > 1e-10)
+
+ir = max(model.ir.nindex, [], 1);
+env = max(model.env.nindex, [], 1);
+pss = max(model.pss.nindex, [], 1);
+cneg = max(model.cneg.nindex, [], 1);
+pneg = max(model.pneg.nindex, [], 1);
+
+envrel = max(model.env.relstateerr, [], 1);
+pssrel = max(model.pss.relstateerr, [], 1);
+
+pcneg = config == "pneg" | config == "cneg";
+diffcpneg = cneg(pcneg) - pneg(pcneg);
+sum(isnan(diffcpneg) | diffcpneg > 1e-4)
 
 %% plot index-reduced model
 
@@ -925,7 +938,7 @@ save("modelBC_SV40_from_JKn_2024_indices_8_state_full.mat", "ir", "contr", "obs"
 
 model = load("modelBC_SV40_from_JKn_2024.mat").model;
 
-redmodel = mor_sequential_JKn_2018(model, flip(model.analysis.ir.I_sorted_max_nindex), 0.15);
+redmodel = mor_sequential_JKn_2018(model, flip(model.analysis.ir.I_sorted_max_nindex), 0.1);
 
 save("modelBC_SV40_from_JKn_2024_reduced_13_state.mat", "redmodel")
 
