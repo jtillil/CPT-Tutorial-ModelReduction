@@ -42,8 +42,8 @@ You will also be able to import your model from SBML (systems biology markup lan
 ### 2 Apply index analysis
 
 To apply index analysis to obtain insight into the model dynamics and guide the subsequent model order reduction, follow these steps:
-- Make the "/MAIN" folder your working directory.
-- Load your "model" struct into the workspace.
+- Make the `/MAIN` folder your working directory.
+- Load your `model` struct into the workspace.
 - Run
   ```model = compute_and_analyse_indices_matlabfun(model)```
   to compute the ir and state-classification indices and relative state approximation errors to setup the `model` struct for further application of model order reduction. This step may take some time. It is recommended to perform this action on a modern multi-core CPU (or simply a server CPU, if available) and to set up the MATLAB parallel pool with a number of workers equivalent to half the number of logical cores available. On a 16-core, 32-thread AMD Ryzen 7950X CPU, computing all indices for the blood coagulation QSP model with 16 parallel workers took 6 hours and required 24GB of system memory.
