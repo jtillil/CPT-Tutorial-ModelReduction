@@ -46,9 +46,7 @@ You will also be able to import your model from SBML (systems biology markup lan
 To apply index analysis to obtain insight into the model dynamics and guide the subsequent model order reduction, follow these steps:
  - Make the "/MAIN" folder your working directory.
  - Load your "model" struct into the workspace.
- - Run
-   ```model = compute_and_analyse_indices_matlabfun(model)```
-   to compute the ir and state-classification indices and relative state approximation errors to setup the "model" struct for further application of model order reduction. This step may take some time. It is recommended to perform this action on a modern multi-core CPU (or simply a server CPU, if available) and to set up the MATLAB parallel pool with a number of workers equivalent to half the number of logical cores available. On a 16-core, 32-thread AMD Ryzen 7950X CPU, computing all indices for the blood coagulation QSP model with 16 parallel workers took 6 hours and required 24GB of system memory.
+ - Run ```model = compute_and_analyse_indices_matlabfun(model)``` to compute the ir and state-classification indices and relative state approximation errors to setup the "model" struct for further application of model order reduction. This step may take some time. It is recommended to perform this action on a modern multi-core CPU (or simply a server CPU, if available) and to set up the MATLAB parallel pool with a number of workers equivalent to half the number of logical cores available. On a 16-core, 32-thread AMD Ryzen 7950X CPU, computing all indices for the blood coagulation QSP model with 16 parallel workers took 6 hours and required 24GB of system memory.
  - The ir-indices are saved in the **model.ir** field alongside the controllability and observability indices in the **model.contr** and **model.obs** fields, the env, pneg, cneg, and pss state-classification indices are saved in the **model.env**, **model.pneg**, **model.cneg**, and **model.pss** fields, and the analysis of the indices is supplied in the **model.analysis** field.
 
 ### 3 Apply model order reduction
@@ -56,7 +54,7 @@ To apply index analysis to obtain insight into the model dynamics and guide the 
 To apply index-guided model order reduction with the algorithm supplied in [Knöchel et. al. 2018], follow these steps:
  - Make the "/MAIN" folder your working directory.
  - Load your "model" struct into the workspace.
- - Run "redmodel = mor_sequential_JKn_2018(model)" to reduce the model with the above-mentioned algorithm, using the sequence given by the ir-indices.
+ - Run ```redmodel = mor_sequential_JKn_2018(model)``` to reduce the model with the above-mentioned algorithm, using the sequence given by the ir-indices.
  - The reduction process and reduced model structure are documented in the console and saved in the newly created "redmodel" struct.
 
 ### 4 Compute ir-indices of the reduced model for validation
@@ -64,5 +62,5 @@ To apply index-guided model order reduction with the algorithm supplied in [Knö
 Validating if the reduced model retained the main mechanistic features of the original QSP model is a difficult task due to the extremely high dimensionality of the space of possible trajectories and can thus only been done locally. To do this via our presented index analysis approach, follow these steps:
  - Make the "/MAIN" folder your working directory.
  - Load your "redmodel" struct containing the reduced model obtained in step 3 into the workspace.
- - Run "[ir, contr, obs] = compute_ir_indices_matlabfun(redmodel)" to compute the ir-indices for the reduced model.
+ - Run ```[ir, contr, obs] = compute_ir_indices_matlabfun(redmodel)``` to compute the ir-indices for the reduced model.
  - Plot the (normalized) reduced indices against the original indices and compare if the dominant features are retained.
