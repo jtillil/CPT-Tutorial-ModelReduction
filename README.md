@@ -20,7 +20,7 @@ To be able to apply the presented model order reduction and index analysis frame
  - **model.I** [struct]: indexing struct describing the components (states, parameters) of the model, containing the following fields:
     - **model.I.nstates** [double]: scalar, number of states in the model
     - **model.I.nmstate** [cell]: 1-by-model.I.nstates cell array containing the state names as [char]
-    - **model.I.<name_of_state>** [double]: for each state, a scalar indicating its location in mdoel.X0, model.X_ref, and the input X to odefun and jacfun
+    - **model.I.<name_of_state>** [double]: for each state, a scalar indicating its location in model.X0, model.X_ref, and the input X to odefun and jacfun
     - **model.I.npar** [double]: scalar, number of parameters in the model
     - **model.I.nmpar** [cell]: 1-by-model.I.npar cell array containing the parameter names as [char]
     - **model.I.<name_of_parameter>** [double]: for each parameter, a scalar indicating its location in model.par and the input par to odefun and jacfun
@@ -31,7 +31,11 @@ To be able to apply the presented model order reduction and index analysis frame
  - **model.odefun** [function_handle]: function with inputs (X [model.I.nstates-by-1 double containing the state concentrations at time *t*], par [model.I.npar-by-1 double containing the parameter values at time *t*]), returning dX [model.I.nstates-by-1 vector containing the derivative of the states at time *t*]
  - **model.jacfun** [function_handle]: function with inputs (X [model.I.nstates-by-1 double containing the state concentrations at time *t*], par [model.I.npar-by-1 double containing the parameter values at time *t*]), returning dF [model.I.nstates-by-model.I.nstates matrix containing the jacobian of the ODEs at time *t*], required for improved stability and efficiency of the ODE solvers
 
-Then, run "model = create_minimal_model(model)" to automatically create all additionally required fields.
+Then, run
+```
+model = create_minimal_model(model)
+```
+to automatically create all additionally required fields.
 
 For a working example, load the saved model "modelBC_SV40_from_JKn_2024.mat" located in the "/Core/modelfiles" folder.
 
