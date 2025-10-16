@@ -1,6 +1,6 @@
 # CPT-Tutorial-ModelReduction
 
-This repository contains supplemental code written in MATLAB to generate the results and figures of the CPT:PSP tutorial "Tackling High Dimensionality in QSP: Guiding Model Order Reduction with Index Analysis" and provides code and instructions to apply the presented approaches to your own QSP models. The code was tested and the results and figures were generated in `MATLAB_R2025_a`.
+This repository contains supplemental code written in MATLAB to generate the results and figures of the CPT:PSP tutorial "Tackling High Dimensionality in QSP: Guiding Model Order Reduction with Index Analysis" and provides code and instructions to apply the presented approaches to your own QSP models. The code was tested and the results and figures were generated in `MATLAB R2025a`.
 
 Link to the publication: doi/...
 
