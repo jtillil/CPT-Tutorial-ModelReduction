@@ -1,7 +1,7 @@
 %% Setup
 addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 
-run("./setup_models.m")
+% run("./setup_models.m")
 
 %% Analyze two small example models
 

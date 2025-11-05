@@ -72,50 +72,50 @@ reduced_errors.lumping_E_C(1,1) = calculate_lumping_error(model, opt);
 % A env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.A) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.A_env(1,1) = obj.errout;
 
 % S env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_env(1,1) = obj.errout;
 
 % S pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "pss";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_pss(1,1) = obj.errout;
 
 % C env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_env(1,1) = obj.errout;
 
 % C pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "pss";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss(1,1) = obj.errout;
 
 % E env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.E) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_env(1,1) = obj.errout;
 
 % E pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.E) = "pss";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_pss(1,1) = obj.errout;
 
 % C pss E env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "pss";
 config(model.I.E) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss_E_env(1,1) = obj.errout;
 
 %% Scenario 1 - C pss E env ir-indices
@@ -295,50 +295,50 @@ reduced_errors.lumping_E_C(1,2) = calculate_lumping_error(model, opt);
 % A env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.A) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.A_env(1,2) = obj.errout;
 
 % S env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_env(1,2) = obj.errout;
 
 % S pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "pss";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_pss(1,2) = obj.errout;
 
 % C env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_env(1,2) = obj.errout;
 
 % C pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "pss";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss(1,2) = obj.errout;
 
 % E env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.E) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_env(1,2) = obj.errout;
 
 % E pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.E) = "pss";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_pss(1,2) = obj.errout;
 
 % C pss E env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "pss";
 config(model.I.E) = "env";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss_E_env(1,2) = obj.errout;
 
 %% Scenario 1 with E in conservationlaw E+C
@@ -408,54 +408,54 @@ reduced_errors.lumping_E_C(1,3) = calculate_lumping_error(model, opt);
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.A) = "env";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.A_env(1,3) = obj.errout;
 
 % S env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "env";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_env(1,3) = obj.errout;
 
 % S pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "pss";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_pss(1,3) = obj.errout;
 
 % C env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "env";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_env(1,3) = obj.errout;
 
 % C pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "pss";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss(1,3) = obj.errout;
 
 % E env
 % config = repmat("dyn", [1 model.I.nstates]);
 % config(model.I.E) = "env";
-% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_env(1,3) = NaN;
 
 % E pss
 % config = repmat("dyn", [1 model.I.nstates]);
 % config(model.I.E) = "pss";
-% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_pss(1,3) = NaN;
 
 % C pss E env
 % config = repmat("dyn", [1 model.I.nstates]);
 % config(model.I.C) = "pss";
 % config(model.I.E) = "env";
-% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss_E_env(1,3) = NaN;
 
 %% Scenario 2 with E in conservationlaw E+C
@@ -525,54 +525,54 @@ reduced_errors.lumping_E_C(1,4) = calculate_lumping_error(model, opt);
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.A) = "env";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.A_env(1,4) = obj.errout;
 
 % S env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "env";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_env(1,4) = obj.errout;
 
 % S pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.S) = "pss";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.S_pss(1,4) = obj.errout;
 
 % C env
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "env";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_env(1,4) = obj.errout;
 
 % C pss
 config = repmat("dyn", [1 model.I.nstates]);
 config(model.I.C) = "pss";
 config(model.I.E) = "con1";
-obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss(1,4) = obj.errout;
 
 % E env
 % config = repmat("dyn", [1 model.I.nstates]);
 % config(model.I.E) = "env";
-% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_env(1,4) = NaN;
 
 % E pss
 % config = repmat("dyn", [1 model.I.nstates]);
 % config(model.I.E) = "pss";
-% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.E_pss(1,4) = NaN;
 
 % C pss E env
 % config = repmat("dyn", [1 model.I.nstates]);
 % config(model.I.C) = "pss";
 % config(model.I.E) = "env";
-% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "MRSE");
+% obj = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, model.L, model.param, model.multiple, model.odefun, model.jacfun, config, "rel2NE");
 reduced_errors.C_pss_E_env(1,4) = NaN;
 
 %% Save results
