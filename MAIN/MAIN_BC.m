@@ -93,7 +93,7 @@ model.I.nmstate(config == "dyn")
 
 % calculate error
 multiple.multiple = 0;
-[err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
+[err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "rel2NE");
 
 % show results
 disp(err_index.errout)
@@ -228,7 +228,7 @@ end
 
 % calculate error
 % multiple.multiple = 0;
-% [err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
+% [err_index, ~, tred, Xred] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "rel2NE");
 
 % show results
 % disp(err_index.errout)
@@ -393,7 +393,7 @@ model.I.pss = [];
 
 config(config == "pss") = "pneg";
 model.I = config2I(model.I, config, []);
-[err_index_solved, ~, tred_solved, Xred_solved] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "MRSE");
+[err_index_solved, ~, tred_solved, Xred_solved] = objfun(model.t_ref, model.X_ref, model.X0, model.par, model.I, [], model.param, multiple, model.odefun, model.jacfun, config, "rel2NE");
 
 %% ir-indices of pss solved index reduced model
 

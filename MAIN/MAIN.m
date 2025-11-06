@@ -6,7 +6,7 @@ addpath(genpath("../../CPT-Tutorial-ModelReduction"))
 %% Analyze two small example models
 
 run("./MAIN_parallel_pathways.m")
-run("./MAIN_enzyme_kinetics.m")
+% run("./MAIN_enzyme_kinetics.m")
 
 %% Analyze large QSP model of blood coagulation
 
