@@ -12,7 +12,7 @@ To reproduce the results and figures presented in the tutorial, run the `MAIN.m`
 
 Applying all steps of index-guided model order reduction to a large QSP model can take a considerable amount of time if run on an unsuitable machine. To test the capabilities, you can follow the following workflow with the small parallel pathways example model `modelSPP_with_crosstalk_full.mat` in the `/Core/modelfiles` folder.
 
-### 1 Setup your QSP model
+### 1 Setup your model
 
 To be able to apply the presented model order reduction and index analysis framework, you first need to convert your QSP model into a compatible `model` MATLAB struct, requiring the following fields:
  - **model.name** [char]: name of the model
