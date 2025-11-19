@@ -1,3 +1,7 @@
+%
+% This script derives the 8-state, 13-state, and 25-state reduced models
+% for the brown snake venom-fibrinogen system (Wajima 2009, Gulati 2013).
+%
 %% Setup
 clear; clc;
 addpath(genpath("../."))
@@ -42,8 +46,8 @@ save("./results/modelBC_SV40_from_JKn_2024_indices_13_state_full.mat", "ir", "co
 % setup
 seed = 1234;                % RNG seed
 rng(seed, "twister");       % RNG
-% Npop = 1000;              % number of virtual individuals
-Npop = 10;
+Npop = 1000;              % number of virtual individuals
+% Npop = 10;
 CV = 0.4;                   % coefficient of variation of the parameters
 
 % load model
@@ -93,7 +97,7 @@ variability.variability = 1;                            % wheter to reduce the m
 
 save(['../Core/modelfiles/modelBC_SV40_population_CV' char(num2str(100*CV)) '.mat'], "variability")
 
-%% derive 25-state model - reduce model for virtual population
+%% derive 24-state model - reduce model for virtual population
 
 model_BC_SV1 = load("modelBC_SV1_from_JKn_2024.mat").model;
 model = load("modelBC_SV40_from_JKn_2024.mat").model;
@@ -105,4 +109,4 @@ redmodel_backwards = mor_backwards_UFa_2023(redmodel_seq1, flip(model.analysis.i
 
 redmodel = mor_sequential_JKn_2018(redmodel_backwards, flip(model.analysis.ir.I_sorted_max_nindex), 0.1, variability, 95);
 
-save("./results/modelBC_SV40_redvar_CV40_popprct95.mat", "redmodel")
+save("./results/modelBC_SV40_from_JKn_2024_reduced_24_state.mat", "redmodel")

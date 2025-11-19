@@ -461,358 +461,137 @@ s.matlab.appearance.figure.GraphicsTheme.TemporaryValue = "light";
 % % ADJUSTED: Added 'ContentType','vector' for a high-quality, scalable PDF
 % exportgraphics(gcf, "./figures/BC_complete.pdf", 'ContentType', 'vector');
 % 
-%% combined layout analysis
-% 
-% % Load data first, as it's needed for both plot sections
-% load("modelBC_SV40_from_JKn_2024.mat")
-% 
-% % --- Prepare Data for All Plots ---
-% Xdat = [...
-%     max(model.env.nindex(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.env.relstateerr(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.pss.nindex(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.pss.relstateerr(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.cneg.nindex(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.pneg.nindex(:, model.analysis.ir.I_sorted_max_nindex))'];
-% Xdat(isnan(Xdat)) = 10;
-% names = model.I.nmstate(model.analysis.ir.I_sorted_max_nindex);
-% names = replace(names, '_', ':');
-% names{46} = 'VKp';
-% names{54} = 'ENOp';
-% names{60} = 'AVenom\_Tiger';
-% names{61} = 'CVenom\_Tiger';
-% dat = max(model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex))';
-% dat([30 31]) = 0;
-% 
-% AUC_t_idx = 298;
-% dat_AUC = trapz(model.t_ref(1:AUC_t_idx), model.ir.nindex(1:AUC_t_idx, model.analysis.ir.I_sorted_max_nindex), 1);
-% sum_AUC = sum(dat_AUC);
-% dat_AUC_norm = dat_AUC./sum_AUC;
-% dat_AUC_norm([30 31]) = 0;
-% 
-% % --- 1. Setup Figure and Panels ---
-% f = figure('Units', 'centimeters', 'Position', [0, 0, 20, 15]);
-% 
-% mainLayout = tiledlayout(f, 3, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
-% 
-% % --- 2. Create the Top Scatter Plot inside the Top Panel ---
-% ax1 = nexttile(mainLayout, [1,1]);
-% 
-% myblue = [0.0660, 0.4430, 0.7450];
-% myorange = [0.8660, 0.3290, 0.0000];
-% scatter(ax1, 1:length(dat), dat, 36, 'filled', 'MarkerFaceColor', 'black');
-% hold(ax1, 'on');
-% scatter(ax1, 1:length(dat), dat_AUC_norm, 'ko', 'MarkerFaceColor', 'white');
-% hold(ax1, 'off');
-% legend(["maximum", "fraction of AUC"], 'Location', 'northeast')
-% box(ax1, 'on');
-% xlim(ax1, [0 length(dat)+1]);
-% ylim(ax1, [1e-4 2e0]);
-% ylabel(ax1, 'nir-index');
-% title_text_scatter = "A) Ordering of states by decreasing dynamic relevance";
-% ax1.YTick = [1e-4 1e-3 1e-2 1e-1 1e0];
-% ax1.XTick = 1:length(names);
-% ax1.XTickLabel = names(1:end);
-% ax1.XTickLabelRotation = 60;
-% ax1.XAxis.FontSize = 8;
-% ax1.TickLength = [0.005 0.005];
-% set(ax1, 'YScale', 'log');
-% grid(ax1, 'on');
-% text(ax1, -0.08, 1.19, title_text_scatter, ...
+
+%% Figure 5 - Fg timecourses
+
+% Load data first, as it's needed for both plot sections
+load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
+default_colors = get(groot, 'DefaultAxesColorOrder');
+
+% --- 1. Setup Figure and Panels ---
+f = figure('Units', 'centimeters', 'Position', [0, 0, 12, 7]);
+hold on;
+idx = model.I.Fg;
+plot(model.t_ref, model.X_ref(:, idx), 'LineWidth', 1.5, 'Color', default_colors(2, :));
+load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
+plot(model.t_ref, redmodel.X_red(:, idx), 'LineWidth', 1.5, 'LineStyle', '--', 'Color', default_colors(2, :));
+load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
+plot(model.t_ref, redmodel.X_red(:, idx), 'LineWidth', 1.5, 'LineStyle', '-.', 'Color', default_colors(2, :));
+% xlim([-0.2, 10])
+xlim([-1, 41])
+ylim([-300, 10000])
+% ylim([-0.1e4, 2.5e4])
+xlabel("t [h]")
+ylabel("Fibrinogen concentration [nM]")
+% title_text_maxnir = "Sum of ir-indices";
+legend(["original", "8-state", "13-state"], 'Location', 'eastoutside')
+grid("on")
+% yscale('log')
+box on;
+% text(-0.17, 1.27, title_text_maxnir, ...
 %                 'Units', 'normalized', ...
 %                 'HorizontalAlignment', 'left', ...
 %                 'VerticalAlignment', 'top', ...
 %                 'FontWeight', 'bold', 'FontSize', 10, 'Interpreter', 'none');
-% 
-% 
-% % --- 3. Create the Bottom Heatmap Plots inside the Bottom Panel ---
-% bottomLayout = tiledlayout(mainLayout, 1, 3, 'TileSpacing', 'compact', 'Padding', 'compact');
-% bottomLayout.Layout.Tile = 2;
-% bottomLayout.Layout.TileSpan = [2, 1];
-% 
-% % --- Define colors and column names for the heatmaps ---
-% colNames = {'env', 'err (env)', 'pss', 'err (pss)', 'cneg', 'pneg'};
-% mypurple = [0.4940, 0.1840, 0.5560];
-% mygold   = [0.9290, 0.6940, 0.1250];
-% white    = [1.0000, 1.0000, 1.0000];
-% cmap = [white; myblue; myorange; mygold; mypurple];
-% row_splits = [1, 22, 43, length(names)+1];
-% 
-% % Loop to create the three heatmaps
-% for i = 1:3
-%     row_indices = row_splits(i) : row_splits(i+1)-1;
-%     Xdat_subset = Xdat(row_indices, :);
-%     names_subset = names(row_indices);
-%     [num_rows, num_cols] = size(Xdat_subset);
-% 
-%     % --- This part remains the same: Determine the color index for each cell ---
-%     color_index_matrix = ones(num_rows, num_cols);
-%     color_index_matrix(Xdat_subset(:, 1) < 0.1, 1) = 2;
-%     color_index_matrix(Xdat_subset(:, 2) < 0.1, 2) = 2;
-%     color_index_matrix(Xdat_subset(:, 3) < 0.1, 3) = 3;
-%     color_index_matrix(Xdat_subset(:, 4) < 0.1, 4) = 3;
-%     color_index_matrix(Xdat_subset(:, 5) < 0.1, 5) = 4;
-%     color_index_matrix(Xdat_subset(:, 6) < 0.1, 6) = 5;
-% 
-%     ax_heat = nexttile(bottomLayout);
-% 
-%     % --- MODIFIED SECTION: Draw Colored Checkmarks on White Grid ---
-%     % We will create an empty plot with a white background and draw our own content.
-%     % Set axes limits manually, as the 'image' function is no longer doing it.
-%     xlim(ax_heat, [0.5, num_cols + 0.5]);
-%     ylim(ax_heat, [0.5, num_rows + 0.5]);
-%     % Invert the Y-axis to match the behavior of 'image' (row 1 at the top)
-%     set(ax_heat, 'YDir', 'reverse');
-% 
-%     hold(ax_heat, 'on');
-% 
-%     % --- NEW LOGIC: Loop through non-white cells and plot colored checkmarks ---
-%     % Find the coordinates of all cells that should not be white (index ~= 1)
-%     [rows, cols] = find(color_index_matrix ~= 1);
-% 
-%     % Loop through each of these coordinates
-%     for k = 1:length(rows)
-%         % Get the specific row and column for this checkmark
-%         r = rows(k);
-%         c = cols(k);
-% 
-%         % Get the color index (e.g., 2 for blue, 3 for orange, etc.)
-%         color_idx = color_index_matrix(r, c);
-% 
-%         % Look up the actual RGB color from our custom colormap
-%         checkmark_color = cmap(color_idx, :);
-% 
-%         % Place the checkmark with the specific color
-%         text(ax_heat, c, r, '✓', ...
-%             'Color', checkmark_color, ...
-%             'HorizontalAlignment', 'center', ...
-%             'VerticalAlignment', 'middle', ...
-%             'FontSize', 12, ...
-%             'FontWeight', 'bold');
-%     end
-% 
-%     hold(ax_heat, 'off');
-% 
-%     % --- The rest of the formatting code remains the same ---
-%     ax_heat.XTick = 1:num_cols;
-%     ax_heat.XTickLabel = colNames;
-%     ax_heat.XTickLabelRotation = 45;
-% 
-%     ax_heat.YTick = 1:num_rows;
-%     ax_heat.YTickLabel = names_subset;
-% 
-%     ax_heat.TickLength = [0 0];
-%     x_grid_lines = 0.5 : 1 : num_cols + 0.5;
-%     y_grid_lines = 0.5 : 1 : num_rows + 0.5;
-%     ax_heat.XAxis.MinorTickValues = x_grid_lines;
-%     ax_heat.YAxis.MinorTickValues = y_grid_lines;
-%     grid(ax_heat, 'off'); % Turn off major grid
-%     grid(ax_heat); % Turn on major grid again to apply settings
-%     ax_heat.GridAlpha = 0; % Make major grid invisible
-%     ax_heat.XMinorGrid = 'on';
-%     ax_heat.YMinorGrid = 'on';
-%     ax_heat.MinorGridColor = [0 0 0]; % Black grid lines
-%     ax_heat.MinorGridAlpha = 1; % Fully opaque
-%     ax_heat.MinorGridLineStyle = '-'; 
-%     ax_heat.Layer = 'top'; % Ensure grid is drawn over any background color
-% 
-%     if i == 1
-%         text(ax_heat, -0.33, 1.07, "B) Analysis of reduction approaches", ...
-%                 'Units', 'normalized', ...
-%                 'HorizontalAlignment', 'left', ...
-%                 'VerticalAlignment', 'top', ...
-%                 'FontWeight', 'bold', 'FontSize', 10, 'Interpreter', 'none');
-%     end
-% end
-% 
-% % --- 4. Export the Figure ---
-% drawnow;
-% exportgraphics(f, "./figures/BC_analysis_combined.pdf", 'ContentType', 'vector');
-% 
-%% combined layout analysis with colored background
-% 
-% % Load data first, as it's needed for both plot sections
-% load("modelBC_SV40_from_JKn_2024.mat")
-% 
-% % --- Prepare Data for All Plots ---
-% Xdat = [...
-%     max(model.env.nindex(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.env.relstateerr(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.pss.nindex(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.pss.relstateerr(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.cneg.nindex(:, model.analysis.ir.I_sorted_max_nindex))',...
-%     max(model.pneg.nindex(:, model.analysis.ir.I_sorted_max_nindex))'];
-% Xdat(isnan(Xdat)) = 10;
-% names = model.I.nmstate(model.analysis.ir.I_sorted_max_nindex);
-% names = replace(names, '_', ':');
-% names{46} = 'VKp';
-% names{54} = 'ENOp';
-% names{60} = 'AVenom\_Tiger';
-% names{61} = 'CVenom\_Tiger';
-% dat = max(model.ir.nindex(:, model.analysis.ir.I_sorted_max_nindex))';
-% dat([30 31]) = 0;
-% 
-% AUC_t_idx = 298;
-% dat_AUC = trapz(model.t_ref(1:AUC_t_idx), model.ir.nindex(1:AUC_t_idx, model.analysis.ir.I_sorted_max_nindex), 1);
-% sum_AUC = sum(dat_AUC);
-% dat_AUC_norm = dat_AUC./sum_AUC;
-% dat_AUC_norm([30 31]) = 0;
-% 
-% % --- 1. Setup Figure and Panels ---
-% f = figure('Units', 'centimeters', 'Position', [0, 0, 20, 15]);
-% 
-% mainLayout = tiledlayout(f, 3, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
-% 
-% % --- 2. Create the Top Scatter Plot inside the Top Panel ---
-% ax1 = nexttile(mainLayout, [1,1]);
-% 
-% myblue = [0.0660, 0.4430, 0.7450];
-% myorange = [0.8660, 0.3290, 0.0000];
-% scatter(ax1, 1:length(dat), dat, 36, 'filled', 'MarkerFaceColor', 'black');
-% hold(ax1, 'on');
-% % scatter(ax1, 1:length(dat), dat_AUC_norm, 'ko', 'MarkerFaceColor', 'white');
-% hold(ax1, 'off');
-% % legend(["maximum", "fraction of AUC"], 'Location', 'northeast')
-% box(ax1, 'on');
-% xlim(ax1, [0 length(dat)+1]);
-% ylim(ax1, [1e-4 2e0]);
-% ylabel(ax1, 'nir-index');
-% title_text_scatter = "A) Ordering of states by decreasing dynamic relevance";
-% ax1.YTick = [1e-4 1e-3 1e-2 1e-1 1e0];
-% ax1.XTick = 1:length(names);
-% ax1.XTickLabel = names(1:end);
-% ax1.XTickLabelRotation = 60;
-% ax1.XAxis.FontSize = 8;
-% ax1.TickLength = [0.005 0.005];
-% set(ax1, 'YScale', 'log');
-% grid(ax1, 'on');
-% text(ax1, -0.08, 1.19, title_text_scatter, ...
-%                 'Units', 'normalized', ...
-%                 'HorizontalAlignment', 'left', ...
-%                 'VerticalAlignment', 'top', ...
-%                 'FontWeight', 'bold', 'FontSize', 10, 'Interpreter', 'none');
-% 
-% 
-% % --- 3. Create the Bottom Heatmap Plots inside the Bottom Panel ---
-% bottomLayout = tiledlayout(mainLayout, 1, 3, 'TileSpacing', 'compact', 'Padding', 'compact');
-% bottomLayout.Layout.Tile = 2;
-% bottomLayout.Layout.TileSpan = [2, 1];
-% 
-% % --- Define colors and column names for the heatmaps ---
-% colNames = {'env', 'err (env)', 'pss', 'err (pss)', 'cneg', 'pneg'};
-% mypurple = [0.4940, 0.1840, 0.5560];
-% mygold   = [0.9290, 0.6940, 0.1250];
-% white    = [1.0000, 1.0000, 1.0000];
-% cmap = [white; myblue; myorange; mygold; mypurple];
-% row_splits = [1, 22, 43, length(names)+1];
-% 
-% % --- Define rows and colors for background highlighting ---
-% gray_rows_global = [1, 2, 3, 7, 9, 10, 13, 23];
-% blue_rows_global = [5, 15, 19, 21, 26];
-% % Calculate a 20% gray (i.e., 80% white)
-% light_gray = [0.8, 0.8, 0.8]; 
-% % Calculate a 20% tint of 'myblue' mixed with 80% white
-% light_blue = 0.2 * myblue + 0.8 * white;
-% 
-% % Loop to create the three heatmaps
-% for i = 1:3
-%     row_indices = row_splits(i) : row_splits(i+1)-1;
-%     Xdat_subset = Xdat(row_indices, :);
-%     names_subset = names(row_indices);
-%     [num_rows, num_cols] = size(Xdat_subset);
-% 
-%     color_index_matrix = ones(num_rows, num_cols);
-%     color_index_matrix(Xdat_subset(:, 1) < 0.1, 1) = 2;
-%     color_index_matrix(Xdat_subset(:, 2) < 0.1, 2) = 2;
-%     color_index_matrix(Xdat_subset(:, 3) < 0.1, 3) = 3;
-%     color_index_matrix(Xdat_subset(:, 4) < 0.1, 4) = 3;
-%     color_index_matrix(Xdat_subset(:, 5) < 0.1, 5) = 4;
-%     color_index_matrix(Xdat_subset(:, 6) < 0.1, 6) = 5;
-% 
-%     ax_heat = nexttile(bottomLayout);
-% 
-%     xlim(ax_heat, [0.5, num_cols + 0.5]);
-%     ylim(ax_heat, [0.5, num_rows + 0.5]);
-%     set(ax_heat, 'YDir', 'reverse');
-% 
-%     hold(ax_heat, 'on');
-% 
-%     % --- ADDED CODE: Draw background highlights for specific rows --- %%
-%     current_gray_rows = intersect(gray_rows_global, row_indices);
-%     current_blue_rows = intersect(blue_rows_global, row_indices);
-% 
-%     % Draw gray background patches
-%     for k = 1:length(current_gray_rows)
-%         global_row = current_gray_rows(k);
-%         local_row = global_row - row_indices(1) + 1;
-%         patch(ax_heat, [0.5, num_cols + 0.5, num_cols + 0.5, 0.5], ...
-%                        [local_row - 0.5, local_row - 0.5, local_row + 0.5, local_row + 0.5], ...
-%                        light_gray, 'EdgeColor', 'none');
-%     end
-% 
-%     % Draw blue background patches
-%     for k = 1:length(current_blue_rows)
-%         global_row = current_blue_rows(k);
-%         local_row = global_row - row_indices(1) + 1;
-%         patch(ax_heat, [0.5, num_cols + 0.5, num_cols + 0.5, 0.5], ...
-%                        [local_row - 0.5, local_row - 0.5, local_row + 0.5, local_row + 0.5], ...
-%                        light_blue, 'EdgeColor', 'none');
-%     end
-%     % --- END OF ADDED CODE --- %%
-% 
-%     [rows, cols] = find(color_index_matrix ~= 1);
-% 
-%     for k = 1:length(rows)
-%         r = rows(k);
-%         c = cols(k);
-%         color_idx = color_index_matrix(r, c);
-%         checkmark_color = cmap(color_idx, :);
-%         text(ax_heat, c, r, '✓', ...
-%             'Color', checkmark_color, ...
-%             'HorizontalAlignment', 'center', ...
-%             'VerticalAlignment', 'middle', ...
-%             'FontSize', 12, ...
-%             'FontWeight', 'bold');
-%     end
-% 
-%     hold(ax_heat, 'off');
-% 
-%     ax_heat.XTick = 1:num_cols;
-%     ax_heat.XTickLabel = colNames;
-%     ax_heat.XTickLabelRotation = 45;
-% 
-%     ax_heat.YTick = 1:num_rows;
-%     ax_heat.YTickLabel = names_subset;
-% 
-%     ax_heat.TickLength = [0 0];
-%     x_grid_lines = 0.5 : 1 : num_cols + 0.5;
-%     y_grid_lines = 0.5 : 1 : num_rows + 0.5;
-%     ax_heat.XAxis.MinorTickValues = x_grid_lines;
-%     ax_heat.YAxis.MinorTickValues = y_grid_lines;
-%     grid(ax_heat, 'off');
-%     grid(ax_heat);
-%     ax_heat.GridAlpha = 0;
-%     ax_heat.XMinorGrid = 'on';
-%     ax_heat.YMinorGrid = 'on';
-%     ax_heat.MinorGridColor = [0 0 0];
-%     ax_heat.MinorGridAlpha = 1;
-%     ax_heat.MinorGridLineStyle = '-'; 
-%     ax_heat.Layer = 'top';
-% 
-%     if i == 1
-%         text(ax_heat, -0.33, 1.07, "B) Analysis of reduction approaches", ...
-%                 'Units', 'normalized', ...
-%                 'HorizontalAlignment', 'left', ...
-%                 'VerticalAlignment', 'top', ...
-%                 'FontWeight', 'bold', 'FontSize', 10, 'Interpreter', 'none');
-%     end
-% end
-% 
-% % --- 4. Export the Figure ---
-% drawnow;
-% exportgraphics(f, "./figures/BC_analysis_combined.pdf", 'ContentType', 'vector');
-% 
-%% combined layout analysis with colored background, separate columns for models
+
+
+% --- 4. Export the Figure ---
+drawnow;
+exportgraphics(f, "./figures/BC_Fg_timecourses.pdf", 'ContentType', 'vector');
+
+%% Figure 5 - state trajectories; ir indices
+
+
+% SINGLE PLOT --- timecourses
+default_colors = get(groot, 'DefaultAxesColorOrder');
+new_colors = [
+    0.90, 0.10, 0.15; 0.60, 0.90, 0.10; 0.00, 0.60, 0.50;
+    0.95, 0.30, 0.70; 0.60, 0.40, 0.20; 0.20, 0.20, 0.60;
+];
+colors = [default_colors; new_colors];
+colors = colors(1:11, :);
+
+load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
+names = model.I.nmstate;
+names = replace(names, '_', ':');
+
+% --- 1. Setup Figure and Tiled Layout ---
+f = figure('Units', 'centimeters', 'Position', [0, 0, 12, 7]);
+tiledlayout(1, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
+
+% --- LEFT TILE: Original .index data, NO Legend ---
+ax1 = gca;
+colororder(ax1, colors);
+hold(ax1, 'on');
+idx = model.analysis.ir.I_sorted_max_nindex([1:10, 13]);
+plot(ax1, model.t_ref, model.X_ref(:, idx), 'LineWidth', 1.5);
+% plot(ax1, model.t_ref, model.ir.index(:, idx), 'LineWidth', 1, 'LineStyle', '--');
+xlim(ax1, [-1, 41])
+ylim(ax1, [1e-6, 1e5])
+xlabel(ax1, "t [h]")
+ylabel(ax1, "concentration [nM]")
+legend(ax1, names{idx}, 'Location', 'eastoutside')
+yscale(ax1, 'log')
+grid(ax1, "on")
+box(ax1, 'on');
+% Title removed
+
+% --- 4. Export the Figure ---
+drawnow;
+exportgraphics(f, "./figures/BC_timecourses_original_model.pdf", 'ContentType', 'vector');
+
+
+% SINGLE INSET PLOT
+default_colors = get(groot, 'DefaultAxesColorOrder');
+new_colors = [
+    0.90, 0.10, 0.15; 0.60, 0.90, 0.10; 0.00, 0.60, 0.50;
+    0.95, 0.30, 0.70; 0.60, 0.40, 0.20; 0.20, 0.20, 0.60;
+];
+colors = [default_colors; new_colors];
+colors = colors(1:11, :);
+
+load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
+names = model.I.nmstate;
+names = replace(names, '_', ':');
+
+% --- 1. Setup Figure and Tiled Layout ---
+f = figure('Units', 'centimeters', 'Position', [0, 0, 12, 7]);
+tiledlayout(1, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
+
+% --- LEFT TILE: Original .index data, NO Legend ---
+ax1 = gca;
+colororder(ax1, colors);
+hold(ax1, 'on');
+% plot(ax1, model.t_ref, ir.index(:, idx), 'LineWidth', 1.5);
+idx = model.analysis.ir.I_sorted_max_nindex([1:10, 13]);
+plot(ax1, model.t_ref, model.ir.index(:, idx), 'LineWidth', 1.5);
+xlim(ax1, [-1, 41])
+ylim(ax1, [-300, 10000])
+xlabel(ax1, "t [h]")
+ylabel(ax1, "ir-index")
+legend(ax1, names{idx}, 'Location', 'eastoutside')
+grid(ax1, "on")
+box(ax1, 'on');
+% Title removed
+
+inset_axes = axes('Position', [0.42, 0.5, 0.25, 0.4]);
+colororder(inset_axes, colors);
+hold(inset_axes, 'on');
+idx = model.analysis.ir.I_sorted_max_nindex([1:10, 13]);
+% plot(inset_axes, model.t_ref, ir.index(:, idx), 'LineWidth', 1.5);
+plot(inset_axes, model.t_ref, model.ir.index(:, idx), 'LineWidth', 1.5);
+xlim(inset_axes, [-0.005 0.155])
+ylim(inset_axes, [-300, 10000])
+% xlabel(inset_axes, "t [h]")
+% ylabel(inset_axes, "ir-index")
+grid(inset_axes, "on")
+box(inset_axes, 'on');
+
+% --- 4. Export the Figure ---
+drawnow;
+exportgraphics(f, "./figures/BC_ir_indices_original_model_inset.pdf", 'ContentType', 'vector');
+
+%% Figure 6
 
 % Load data first, as it's needed for both plot sections
 load("modelBC_SV40_from_JKn_2024.mat")
@@ -1297,137 +1076,7 @@ box on;
 drawnow;
 exportgraphics(f, "./figures/BC_sum_ir_indices_015.pdf", 'ContentType', 'vector');
 
-%% Fibrinogen timecourse
-
-% Load data first, as it's needed for both plot sections
-load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
-default_colors = get(groot, 'DefaultAxesColorOrder');
-
-% --- 1. Setup Figure and Panels ---
-f = figure('Units', 'centimeters', 'Position', [0, 0, 12, 7]);
-hold on;
-idx = model.I.Fg;
-plot(model.t_ref, model.X_ref(:, idx), 'LineWidth', 1.5, 'Color', default_colors(2, :));
-load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
-plot(model.t_ref, redmodel.X_red(:, idx), 'LineWidth', 1.5, 'LineStyle', '--', 'Color', default_colors(2, :));
-load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
-plot(model.t_ref, redmodel.X_red(:, idx), 'LineWidth', 1.5, 'LineStyle', '-.', 'Color', default_colors(2, :));
-% xlim([-0.2, 10])
-xlim([-1, 41])
-ylim([-300, 10000])
-% ylim([-0.1e4, 2.5e4])
-xlabel("t [h]")
-ylabel("Fibrinogen concentration [nM]")
-% title_text_maxnir = "Sum of ir-indices";
-legend(["original", "8-state", "13-state"], 'Location', 'eastoutside')
-grid("on")
-% yscale('log')
-box on;
-% text(-0.17, 1.27, title_text_maxnir, ...
-%                 'Units', 'normalized', ...
-%                 'HorizontalAlignment', 'left', ...
-%                 'VerticalAlignment', 'top', ...
-%                 'FontWeight', 'bold', 'FontSize', 10, 'Interpreter', 'none');
-
-
-% --- 4. Export the Figure ---
-drawnow;
-exportgraphics(f, "./figures/BC_Fg_timecourses.pdf", 'ContentType', 'vector');
-
-%% Timecourses and ir-indices --- original model
-
-
-% SINGLE PLOT --- timecourses
-default_colors = get(groot, 'DefaultAxesColorOrder');
-new_colors = [
-    0.90, 0.10, 0.15; 0.60, 0.90, 0.10; 0.00, 0.60, 0.50;
-    0.95, 0.30, 0.70; 0.60, 0.40, 0.20; 0.20, 0.20, 0.60;
-];
-colors = [default_colors; new_colors];
-colors = colors(1:11, :);
-
-load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
-names = model.I.nmstate;
-names = replace(names, '_', ':');
-
-% --- 1. Setup Figure and Tiled Layout ---
-f = figure('Units', 'centimeters', 'Position', [0, 0, 12, 7]);
-tiledlayout(1, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
-
-% --- LEFT TILE: Original .index data, NO Legend ---
-ax1 = gca;
-colororder(ax1, colors);
-hold(ax1, 'on');
-idx = model.analysis.ir.I_sorted_max_nindex([1:10, 13]);
-plot(ax1, model.t_ref, model.X_ref(:, idx), 'LineWidth', 1.5);
-% plot(ax1, model.t_ref, model.ir.index(:, idx), 'LineWidth', 1, 'LineStyle', '--');
-xlim(ax1, [-1, 41])
-ylim(ax1, [1e-6, 1e5])
-xlabel(ax1, "t [h]")
-ylabel(ax1, "concentration [nM]")
-legend(ax1, names{idx}, 'Location', 'eastoutside')
-yscale(ax1, 'log')
-grid(ax1, "on")
-box(ax1, 'on');
-% Title removed
-
-% --- 4. Export the Figure ---
-drawnow;
-exportgraphics(f, "./figures/BC_timecourses_original_model.pdf", 'ContentType', 'vector');
-
-
-% SINGLE INSET PLOT
-default_colors = get(groot, 'DefaultAxesColorOrder');
-new_colors = [
-    0.90, 0.10, 0.15; 0.60, 0.90, 0.10; 0.00, 0.60, 0.50;
-    0.95, 0.30, 0.70; 0.60, 0.40, 0.20; 0.20, 0.20, 0.60;
-];
-colors = [default_colors; new_colors];
-colors = colors(1:11, :);
-
-load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
-names = model.I.nmstate;
-names = replace(names, '_', ':');
-
-% --- 1. Setup Figure and Tiled Layout ---
-f = figure('Units', 'centimeters', 'Position', [0, 0, 12, 7]);
-tiledlayout(1, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
-
-% --- LEFT TILE: Original .index data, NO Legend ---
-ax1 = gca;
-colororder(ax1, colors);
-hold(ax1, 'on');
-% plot(ax1, model.t_ref, ir.index(:, idx), 'LineWidth', 1.5);
-idx = model.analysis.ir.I_sorted_max_nindex([1:10, 13]);
-plot(ax1, model.t_ref, model.ir.index(:, idx), 'LineWidth', 1.5);
-xlim(ax1, [-1, 41])
-ylim(ax1, [-300, 10000])
-xlabel(ax1, "t [h]")
-ylabel(ax1, "ir-index")
-legend(ax1, names{idx}, 'Location', 'eastoutside')
-grid(ax1, "on")
-box(ax1, 'on');
-% Title removed
-
-inset_axes = axes('Position', [0.42, 0.5, 0.25, 0.4]);
-colororder(inset_axes, colors);
-hold(inset_axes, 'on');
-idx = model.analysis.ir.I_sorted_max_nindex([1:10, 13]);
-% plot(inset_axes, model.t_ref, ir.index(:, idx), 'LineWidth', 1.5);
-plot(inset_axes, model.t_ref, model.ir.index(:, idx), 'LineWidth', 1.5);
-xlim(inset_axes, [-0.005 0.155])
-ylim(inset_axes, [-300, 10000])
-% xlabel(inset_axes, "t [h]")
-% ylabel(inset_axes, "ir-index")
-grid(inset_axes, "on")
-box(inset_axes, 'on');
-
-% --- 4. Export the Figure ---
-drawnow;
-exportgraphics(f, "./figures/BC_ir_indices_original_model_inset.pdf", 'ContentType', 'vector');
-
 %% Individual ir-indices --- 8-state model
-
 
 % SINGLE INSET PLOT
 default_colors = get(groot, 'DefaultAxesColorOrder');
@@ -2011,7 +1660,7 @@ exportgraphics(f, "./figures/BC_ir_indices_13_state_reduced_model_015.pdf", 'Con
 % drawnow;
 % exportgraphics(f, "./figures/BC_ir_indices_13_state_reduced_model_015_quadratic.pdf", 'ContentType', 'vector');
 
-%% 2 types of normalized indices --- 8-state model
+%% 2 types of normalized indices --- 13-state model
 
 % --- Setup code (kept from original) ---
 default_colors = get(groot, 'DefaultAxesColorOrder');
@@ -2143,7 +1792,7 @@ drawnow;
 exportgraphics(f, "./figures/BC_nir_indices_13_state_reduced_model_015.pdf", 'ContentType', 'vector');
 
 
-%% approximation quality in 8-state reduced model
+%% Supplement: approximation quality in 8-state reduced model
 
 % Load data first, as it's needed for both plot sections
 load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
@@ -2216,7 +1865,7 @@ end
 drawnow;
 exportgraphics(f, "./figures/BC_approximation_8_state_reduced_model.pdf", 'ContentType', 'vector');
 
-%% approximation quality in 13-state reduced model
+%% Supplement: approximation quality in 13-state reduced model
 
 % Load data first, as it's needed for both plot sections
 load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
@@ -2289,7 +1938,7 @@ end
 drawnow;
 exportgraphics(f, "./figures/BC_approximation_13_state_reduced_model.pdf", 'ContentType', 'vector');
 
-%% approximation quality in 25-state reduced model
+%% Supplement: approximation quality in 24-state reduced model
 
 % Load data first, as it's needed for both plot sections
 load("../Core/modelfiles/modelBC_SV40_from_JKn_2024.mat")
@@ -2301,8 +1950,8 @@ I = model.I;
 % I.XI, I.XIa, I.XIII, I.XIIIa, I.Tmod, I.IIa_Tmod, I.APC, I.APC_PS, I.Pg, I.P]) = "dyn";
 % redconfig([I.X, I.PS, I.PC, I.TFPI, I.VKH2]) = "env";
 
-load("modelBC_SV40_redvar_CV40_popprct95.mat")
-redconfig = redmodel_seq_var.redconfig;
+load("./results/modelBC_SV40_from_JKn_2024_reduced_24_state.mat")
+redconfig = redmodel.redconfig;
 
 [redobj, ~, tred, Xred, err] = objfun_simple(model, redconfig, "rel2NE");
 
@@ -2369,196 +2018,348 @@ end
 
 % --- 4. Export the Figure ---
 drawnow;
-exportgraphics(f, "./figures/BC_approximation_25_state_reduced_model.pdf", 'ContentType', 'vector');
+exportgraphics(f, "./figures/BC_approximation_24_state_reduced_model.pdf", 'ContentType', 'vector');
 
-%% Reduced models perturbation analysis
+%% Supplement: antivenom simulation
 
-default_colors = get(groot, 'DefaultAxesColorOrder');
-
-load("modelBC_SV40_from_JKn_2024.mat")
-
-config = repmat("dyn", [1 model.I.nstates]);
-
-% SIMULATION
-
-% t_star = 1e-20;
-% t_star = 0.01;
-% t_star = 1/60;
-% t_star = 5/60;
-t_star = 10/60;
-% t_star = 20/60;
-% t_star = 30/60;
-t_star = 60/60;
-% t_star = 120/60;
-t_star = 180/60;
-t_star = 5;
-
-% model.X0(model.I.AVenom) = 0.001*model.X0(model.I.AVenom);
-Gulati = 1;
-save_gulati = '';
-if Gulati
-    model.par(model.I.d_Brown) = 0.744;
-    model.par(model.I.ka_Brown) = 0.854;
-    save_gulati = '_gulati2014';
+for Gulati = [0, 1]
+if Gulati == 0
+for t_star = [10/60 60/60]
+    default_colors = get(groot, 'DefaultAxesColorOrder');
+    
+    load("modelBC_SV40_from_JKn_2024.mat")
+    
+    config = repmat("dyn", [1 model.I.nstates]);
+    
+    % SIMULATION
+    % t_star = 1e-20;
+    % t_star = 0.01;
+    % t_star = 1/60;
+    % t_star = 5/60;
+    % t_star = 10/60;
+    % t_star = 20/60;
+    % t_star = 30/60;
+    % t_star = 60/60;
+    % t_star = 120/60;
+    % t_star = 180/60;
+    % t_star = 5;
+    
+    save_gulati = '';
+    if Gulati
+        model.par(model.I.d_Brown) = 0.744;
+        model.par(model.I.ka_Brown) = 0.854;
+        save_gulati = '_gulati2014';
+    end
+    
+    model_sim_init = model;
+    
+    model_sim_init.t_ref = [0, t_star];
+    [t_1_full, X_1_full, ~, ~] = simModel_simple(model_sim_init, config);
+    load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
+    [t_1_8_state, X_1_8_state, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
+    [t_1_13_state, X_1_13_state, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    
+    t_2 = [t_star; model.t_ref(end);];
+    model_sim_init.t_ref = t_2;
+    model_sim_init.X0 = X_1_full(end, :)';
+    [t_2_full_base, X_2_full_base, ~, ~] = simModel_simple(model_sim_init, config);
+    load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
+    model_sim_init.X0 = X_1_8_state(end, :)';
+    [t_2_8_state_base, X_2_8_state_base, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
+    model_sim_init.X0 = X_1_13_state(end, :)';
+    [t_2_13_state_base, X_2_13_state_base, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    
+    model_sim = model;
+    model_sim.t_ref = t_2;
+    a = 0;
+    c = 0;
+    kb = 10;
+    
+    X0_sim_full = X_1_full(end, :)';
+    % X0_sim_full(model.I.IIa) = 0;
+    X0_sim_full(model.I.AVenom) = a*X0_sim_full(model.I.AVenom);
+    X0_sim_full(model.I.CVenom) = c*X0_sim_full(model.I.CVenom);
+    
+    X0_sim_8_state = X_1_8_state(end, :)';
+    % X0_sim_8_state(model.I.IIa) = 0;
+    X0_sim_8_state(model.I.AVenom) = a*X0_sim_8_state(model.I.AVenom);
+    X0_sim_8_state(model.I.CVenom) = c*X0_sim_8_state(model.I.CVenom);
+    
+    X0_sim_13_state = X_1_13_state(end, :)';
+    % X0_sim_13_state(model.I.IIa) = 0;
+    X0_sim_13_state(model.I.AVenom) = a*X0_sim_13_state(model.I.AVenom);
+    X0_sim_13_state(model.I.CVenom) = c*X0_sim_13_state(model.I.CVenom);
+    
+    model_sim.X0 = X0_sim_full;
+    [t_full_2, X_full_2, ~, ~] = simModel_simple(model_sim, config);
+    
+    load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
+    model_sim.X0 = X0_sim_8_state;
+    [t_8_state_2, X_8_state_2, ~, ~] = simModel_simple(model_sim, redmodel.redconfig);
+    
+    load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
+    model_sim.X0 = X0_sim_13_state;
+    [t_13_state_2, X_13_state_2, ~, ~] = simModel_simple(model_sim, redmodel.redconfig);
+    
+    % PLOT
+    
+    f = figure('Units', 'centimeters', 'Position', [0, 0, 20, 10]);
+    tlay = tiledlayout(2, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
+    lw = 1.1;
+    if Gulati
+        xlimits = [0 10];
+    else
+        xlimits = [0 5];
+    end
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_8_state_2, X_8_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_13_state_2, X_13_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    plot(t_2_full_base, X_2_full_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_2_8_state_base, X_2_8_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    plot(t_2_13_state_base, X_2_13_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_1_8_state, X_1_8_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_1_13_state, X_1_13_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim([-1, 41])
+    ylim([-300, 10000])
+    ylabel("concentration [nM]")
+    % legend(["original", "8-state", "13-state"])
+    title("Fibrinogen")
+    box on
+    grid on
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_8_state_2, X_8_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_13_state_2, X_13_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    plot(t_2_full_base, X_2_full_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_2_8_state_base, X_2_8_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    plot(t_2_13_state_base, X_2_13_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_1_8_state, X_1_8_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_1_13_state, X_1_13_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim(xlimits)
+    legend(["original", "8-state", "13-state", "original (no antivenom)", "8-state (no antivenom)", "13-state (no antivenom)"], 'Location', 'eastoutside')
+    title("Fibrinogen (log scale)")
+    yscale('log')
+    box on
+    grid on
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    % plot(t_8_state_2, X_8_state_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    % plot(t_13_state_2, X_13_state_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', ':')
+    plot(t_2_full_base, X_2_full_base(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim(xlimits)
+    ylim([-0.03*8e-3, 8e-3])
+    ylabel("concentration [nM]")
+    xlabel("time [h]")
+    % legend(["original", "8-state", "13-state"])
+    % legend(["antivenom", "no antivenom"])
+    title("AVenom")
+    box on
+    grid on
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    % plot(t_8_state_2, X_8_state_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    % plot(t_13_state_2, X_13_state_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', ':')
+    plot(t_2_full_base, X_2_full_base(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim(xlimits)
+    ylim([-0.03*4e-3, 4e-3])
+    xlabel("time [h]")
+    % legend(["original", "8-state", "13-state"])
+    legend(["antivenom", "no antivenom"], 'Location', 'eastoutside')
+    title("CVenom")
+    box on
+    grid on
+    
+    % --- 4. Export the Figure ---
+    drawnow;
+    exportgraphics(f, ['./figures/BC_antivenom_sim_', char(num2str(t_star)), save_gulati, '.pdf'], 'ContentType', 'vector');
 end
-
-model_sim_init = model;
-
-model_sim_init.t_ref = [0, t_star];
-[t_1_full, X_1_full, ~, ~] = simModel_simple(model_sim_init, config);
-load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
-[t_1_8_state, X_1_8_state, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
-load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
-[t_1_13_state, X_1_13_state, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
-
-t_2 = [t_star; model.t_ref(end);];
-model_sim_init.t_ref = t_2;
-model_sim_init.X0 = X_1_full(end, :)';
-[t_2_full_base, X_2_full_base, ~, ~] = simModel_simple(model_sim_init, config);
-load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
-model_sim_init.X0 = X_1_8_state(end, :)';
-[t_2_8_state_base, X_2_8_state_base, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
-load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
-model_sim_init.X0 = X_1_13_state(end, :)';
-[t_2_13_state_base, X_2_13_state_base, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
-
-model_sim = model;
-model_sim.t_ref = t_2;
-a = 0;
-c = 0;
-kb = 10;
-
-X0_sim_full = X_1_full(end, :)';
-% X0_sim_full(model.I.IIa) = 0;
-X0_sim_full(model.I.AVenom) = a*X0_sim_full(model.I.AVenom);
-X0_sim_full(model.I.CVenom) = c*X0_sim_full(model.I.CVenom);
-
-X0_sim_8_state = X_1_8_state(end, :)';
-% X0_sim_8_state(model.I.IIa) = 0;
-X0_sim_8_state(model.I.AVenom) = a*X0_sim_8_state(model.I.AVenom);
-X0_sim_8_state(model.I.CVenom) = c*X0_sim_8_state(model.I.CVenom);
-
-X0_sim_13_state = X_1_13_state(end, :)';
-% X0_sim_13_state(model.I.IIa) = 0;
-X0_sim_13_state(model.I.AVenom) = a*X0_sim_13_state(model.I.AVenom);
-X0_sim_13_state(model.I.CVenom) = c*X0_sim_13_state(model.I.CVenom);
-
-model_sim.X0 = X0_sim_full;
-[t_full_2, X_full_2, ~, ~] = simModel_simple(model_sim, config);
-
-load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
-model_sim.X0 = X0_sim_8_state;
-[t_8_state_2, X_8_state_2, ~, ~] = simModel_simple(model_sim, redmodel.redconfig);
-
-load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
-model_sim.X0 = X0_sim_13_state;
-[t_13_state_2, X_13_state_2, ~, ~] = simModel_simple(model_sim, redmodel.redconfig);
-
-% PLOT
-
-f = figure('Units', 'centimeters', 'Position', [0, 0, 20, 10]);
-tlay = tiledlayout(2, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
-lw = 1.1;
-if Gulati
-    xlimits = [0 10];
 else
-    xlimits = [0 5];
+for t_star = [180/60 5]
+    default_colors = get(groot, 'DefaultAxesColorOrder');
+    
+    load("modelBC_SV40_from_JKn_2024.mat")
+    
+    config = repmat("dyn", [1 model.I.nstates]);
+    
+    % SIMULATION
+    % t_star = 1e-20;
+    % t_star = 0.01;
+    % t_star = 1/60;
+    % t_star = 5/60;
+    % t_star = 10/60;
+    % t_star = 20/60;
+    % t_star = 30/60;
+    % t_star = 60/60;
+    % t_star = 120/60;
+    % t_star = 180/60;
+    % t_star = 5;
+    
+    save_gulati = '';
+    if Gulati
+        model.par(model.I.d_Brown) = 0.744;
+        model.par(model.I.ka_Brown) = 0.854;
+        save_gulati = '_gulati2014';
+    end
+    
+    model_sim_init = model;
+    
+    model_sim_init.t_ref = [0, t_star];
+    [t_1_full, X_1_full, ~, ~] = simModel_simple(model_sim_init, config);
+    load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
+    [t_1_8_state, X_1_8_state, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
+    [t_1_13_state, X_1_13_state, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    
+    t_2 = [t_star; model.t_ref(end);];
+    model_sim_init.t_ref = t_2;
+    model_sim_init.X0 = X_1_full(end, :)';
+    [t_2_full_base, X_2_full_base, ~, ~] = simModel_simple(model_sim_init, config);
+    load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
+    model_sim_init.X0 = X_1_8_state(end, :)';
+    [t_2_8_state_base, X_2_8_state_base, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
+    model_sim_init.X0 = X_1_13_state(end, :)';
+    [t_2_13_state_base, X_2_13_state_base, ~, ~] = simModel_simple(model_sim_init, redmodel.redconfig);
+    
+    model_sim = model;
+    model_sim.t_ref = t_2;
+    a = 0;
+    c = 0;
+    kb = 10;
+    
+    X0_sim_full = X_1_full(end, :)';
+    % X0_sim_full(model.I.IIa) = 0;
+    X0_sim_full(model.I.AVenom) = a*X0_sim_full(model.I.AVenom);
+    X0_sim_full(model.I.CVenom) = c*X0_sim_full(model.I.CVenom);
+    
+    X0_sim_8_state = X_1_8_state(end, :)';
+    % X0_sim_8_state(model.I.IIa) = 0;
+    X0_sim_8_state(model.I.AVenom) = a*X0_sim_8_state(model.I.AVenom);
+    X0_sim_8_state(model.I.CVenom) = c*X0_sim_8_state(model.I.CVenom);
+    
+    X0_sim_13_state = X_1_13_state(end, :)';
+    % X0_sim_13_state(model.I.IIa) = 0;
+    X0_sim_13_state(model.I.AVenom) = a*X0_sim_13_state(model.I.AVenom);
+    X0_sim_13_state(model.I.CVenom) = c*X0_sim_13_state(model.I.CVenom);
+    
+    model_sim.X0 = X0_sim_full;
+    [t_full_2, X_full_2, ~, ~] = simModel_simple(model_sim, config);
+    
+    load("modelBC_SV40_from_JKn_2024_reduced_8_state.mat")
+    model_sim.X0 = X0_sim_8_state;
+    [t_8_state_2, X_8_state_2, ~, ~] = simModel_simple(model_sim, redmodel.redconfig);
+    
+    load("modelBC_SV40_from_JKn_2024_reduced_13_state.mat")
+    model_sim.X0 = X0_sim_13_state;
+    [t_13_state_2, X_13_state_2, ~, ~] = simModel_simple(model_sim, redmodel.redconfig);
+    
+    % PLOT
+    
+    f = figure('Units', 'centimeters', 'Position', [0, 0, 20, 10]);
+    tlay = tiledlayout(2, 2, 'Padding', 'compact', 'TileSpacing', 'compact');
+    lw = 1.1;
+    if Gulati
+        xlimits = [0 10];
+    else
+        xlimits = [0 5];
+    end
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_8_state_2, X_8_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_13_state_2, X_13_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    plot(t_2_full_base, X_2_full_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_2_8_state_base, X_2_8_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    plot(t_2_13_state_base, X_2_13_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_1_8_state, X_1_8_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_1_13_state, X_1_13_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim([-1, 41])
+    ylim([-300, 10000])
+    ylabel("concentration [nM]")
+    % legend(["original", "8-state", "13-state"])
+    title("Fibrinogen")
+    box on
+    grid on
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_8_state_2, X_8_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_13_state_2, X_13_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    plot(t_2_full_base, X_2_full_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_2_8_state_base, X_2_8_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    plot(t_2_13_state_base, X_2_13_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    plot(t_1_8_state, X_1_8_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
+    plot(t_1_13_state, X_1_13_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim(xlimits)
+    legend(["original", "8-state", "13-state", "original (no antivenom)", "8-state (no antivenom)", "13-state (no antivenom)"], 'Location', 'eastoutside')
+    title("Fibrinogen (log scale)")
+    yscale('log')
+    box on
+    grid on
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    % plot(t_8_state_2, X_8_state_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    % plot(t_13_state_2, X_13_state_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', ':')
+    plot(t_2_full_base, X_2_full_base(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim(xlimits)
+    ylim([-0.03*8e-3, 8e-3])
+    ylabel("concentration [nM]")
+    xlabel("time [h]")
+    % legend(["original", "8-state", "13-state"])
+    % legend(["antivenom", "no antivenom"])
+    title("AVenom")
+    box on
+    grid on
+    
+    ax = nexttile(tlay);
+    hold on;
+    plot(t_full_2, X_full_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    % plot(t_8_state_2, X_8_state_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
+    % plot(t_13_state_2, X_13_state_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', ':')
+    plot(t_2_full_base, X_2_full_base(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
+    plot(t_1_full, X_1_full(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
+    xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
+    xlim(xlimits)
+    ylim([-0.03*4e-3, 4e-3])
+    xlabel("time [h]")
+    % legend(["original", "8-state", "13-state"])
+    legend(["antivenom", "no antivenom"], 'Location', 'eastoutside')
+    title("CVenom")
+    box on
+    grid on
+    
+    % --- 4. Export the Figure ---
+    drawnow;
+    exportgraphics(f, ['./figures/BC_antivenom_sim_', char(num2str(t_star)), save_gulati, '.pdf'], 'ContentType', 'vector');
 end
-
-ax = nexttile(tlay);
-hold on;
-plot(t_full_2, X_full_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
-plot(t_8_state_2, X_8_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
-plot(t_13_state_2, X_13_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
-plot(t_2_full_base, X_2_full_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
-plot(t_2_8_state_base, X_2_8_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
-plot(t_2_13_state_base, X_2_13_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', '--')
-plot(t_1_full, X_1_full(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
-plot(t_1_8_state, X_1_8_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
-plot(t_1_13_state, X_1_13_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
-xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
-xlim([-1, 41])
-ylim([-300, 10000])
-ylabel("concentration [nM]")
-% legend(["original", "8-state", "13-state"])
-title("Fibrinogen")
-box on
-grid on
-
-ax = nexttile(tlay);
-hold on;
-plot(t_full_2, X_full_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
-plot(t_8_state_2, X_8_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
-plot(t_13_state_2, X_13_state_2(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
-plot(t_2_full_base, X_2_full_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
-plot(t_2_8_state_base, X_2_8_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
-plot(t_2_13_state_base, X_2_13_state_base(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', '--')
-plot(t_1_full, X_1_full(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(1, :))
-plot(t_1_8_state, X_1_8_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(2, :))
-plot(t_1_13_state, X_1_13_state(:, [model.I.Fg]), 'LineWidth', lw, 'Color', default_colors(3, :))
-xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
-xlim(xlimits)
-legend(["original", "8-state", "13-state", "original (no antivenom)", "8-state (no antivenom)", "13-state (no antivenom)"], 'Location', 'eastoutside')
-title("Fibrinogen (log scale)")
-yscale('log')
-box on
-grid on
-
-ax = nexttile(tlay);
-hold on;
-plot(t_full_2, X_full_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
-% plot(t_8_state_2, X_8_state_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
-% plot(t_13_state_2, X_13_state_2(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', ':')
-plot(t_2_full_base, X_2_full_base(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
-plot(t_1_full, X_1_full(:, [model.I.AVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
-xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
-xlim(xlimits)
-ylim([-0.03*8e-3, 8e-3])
-ylabel("concentration [nM]")
-xlabel("time [h]")
-% legend(["original", "8-state", "13-state"])
-% legend(["antivenom", "no antivenom"])
-title("AVenom")
-box on
-grid on
-
-ax = nexttile(tlay);
-hold on;
-plot(t_full_2, X_full_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
-% plot(t_8_state_2, X_8_state_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(2, :), 'LineStyle', '--')
-% plot(t_13_state_2, X_13_state_2(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(3, :), 'LineStyle', ':')
-plot(t_2_full_base, X_2_full_base(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :), 'LineStyle', '--')
-plot(t_1_full, X_1_full(:, [model.I.CVenom]), 'LineWidth', lw, 'Color', default_colors(1, :))
-xline(t_star, '-k', 'LineWidth', lw, 'LineStyle', ':')
-xlim(xlimits)
-ylim([-0.03*4e-3, 4e-3])
-xlabel("time [h]")
-% legend(["original", "8-state", "13-state"])
-legend(["antivenom", "no antivenom"], 'Location', 'eastoutside')
-title("CVenom")
-box on
-grid on
-
-% --- 4. Export the Figure ---
-drawnow;
-exportgraphics(f, ['./figures/BC_antivenom_sim_', char(num2str(t_star)), save_gulati, '.pdf'], 'ContentType', 'vector');
-
-%% visualize n=1000 UFa Fg trajectories
-% 
-% load("modelBC_SV40_from_JKn_2024.mat")
-% % load("modelBC_SV40_population_CV20.mat")
-% load("modelBC_SV40_population_CV40.mat")
-% % load("modelBC_population_from_UFa_2023")
-% 
-% X = variability.X_ref_pop{1};
-% historical = [model.t_ref-model.t_ref(2) X(:, model.I.Fg)];
-% forecast = zeros([length(model.t_ref), 1001]);
-% forecast(:, 1) = model.t_ref;
-% for i = 1:1000
-%     X = variability.X_ref_pop{i+1};
-%     forecast(:, i+1) = X(:, model.I.Fg);
-% end
-% 
-% hold on
-% fanplot(historical, forecast)
-% yscale log
+end
+end
