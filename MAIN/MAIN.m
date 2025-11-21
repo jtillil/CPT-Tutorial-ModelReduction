@@ -1,12 +1,9 @@
 %% Setup
-addpath(genpath("../../CPT-Tutorial-ModelReduction"))
+addpath(genpath("../."))
 
-% run("./setup_models.m")
-
-%% Analyze two small example models
+%% Analyze small parallel pathways example model
 
 run("./MAIN_parallel_pathways.m")
-% run("./MAIN_enzyme_kinetics.m")
 
 %% Analyze large QSP model of blood coagulation
 
