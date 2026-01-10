@@ -1,6 +1,3 @@
-%%% Version: 19 Jan 2023
-%%%
-
 function analysis = analyse_all_indices(model)
 
 fprintf('\n  This is analyse_all_indices ...\n')

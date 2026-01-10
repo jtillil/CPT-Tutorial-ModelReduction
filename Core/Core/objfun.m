@@ -1,22 +1,3 @@
-%%% Version: October 28th, 2023
-%%%
-%%% call by: [tout, Xout, log] = simModel(t, X0, par, model)
-%%%
-%%% This function calculates one solution (and returns a log of the
-%%% calculation) of a model, specified by 
-%%%
-%%% Input:  model config
-%%%
-%%% Output: [tout, Xout, log]   output
-%%%
-%%% Citation:
-%%% 
-%%% ---
-%%% 
-%%% Authors: Johannes Tillil
-%%%
-
-% function [obj, objlog, tred, Xred, err] = objfun(t, X0, par, model, config, timeout)
 function [obj, objlog, tred, Xred, err] = objfun(t, X_ref, X0, par, I, L, param, multiple, odefun, jacfun, config, errtype)
 
 % write config to indexing

@@ -1,12 +1,10 @@
-%%% Version: 19 Jan 2023
-%%%
 function model = set_up_the_model(model)
 
 %%% =======================================================================
 %%% 1st part - files to set up the model
 %%% =======================================================================
 
-%%% To define a model, there are only six files need  
+%%% To define a model, there are only six files needed  
 %%% (in folder 'modelspecification/'):
 %%%
 %%%     a) MODELNAME_indexing.m

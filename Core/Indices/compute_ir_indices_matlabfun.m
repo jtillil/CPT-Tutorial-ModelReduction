@@ -1,21 +1,3 @@
-%%% Version: 19 Jan 2023
-%%%
-%%% call by: [ir, contr, obs] = compute_ir_indices(model)
-%%%
-%%% This function computes the sensitivity based input-response indices for
-%%% the given model
-%%%
-%%% Input:  model               structure specifying the model
-%%%         saveresults         1 = yes, 0 = no
-%%%
-%%% Output: ir                  input-response index 
-%%%         contr               controllability index
-%%%         obs                 observability index
-%%%
-%%%
-%%% Authors: Jane Knoechel and Wilhelm Huisinga
-%%%
-
 function [ir, contr, obs, t_ref] = compute_ir_indices_matlabfun(model)
 
 tic;

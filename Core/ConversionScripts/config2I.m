@@ -57,8 +57,4 @@ for k = 1:length(config)
     end
 end
 
-%% check resulting model config
-% TODO
-% has to account for states in conlaw
-
 end

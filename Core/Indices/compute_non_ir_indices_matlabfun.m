@@ -1,22 +1,3 @@
-%%% Version: 19 Jan 2023
-%%%
-%%% call by: indx = compute_non_ir_indices(model,whichindex)
-%%%
-%%% This function computes the env, pss, pneg, cneg state indices for
-%%% the given model
-%%%
-%%% Input:  model               structure specifying the model
-%%%         whichindex          'env','pss','pneg','cneg'
-%%%         saveresults         1 = yes, 0 = no
-%%%
-%%% Output: indx                index structure with subfield
-%%%                             index, nindex,relstateerr
-%%%                             and plotting functions
-%%%
-%%%
-%%% Authors: Jane Knoechel and Wilhelm Huisinga
-%%%
-
 function [indx, t_ref] = compute_non_ir_indices_matlabfun(model,nmindx)
 
 tic;

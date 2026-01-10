@@ -47,12 +47,5 @@ for k = 1:length(config)
     end
 end
 
-% for k = 1:length(config)
-%     model.I.(config(k)) = [model.I.(config(k)) k];
-% end
-
-%% check resulting model config
-% TODO
-
 end
 

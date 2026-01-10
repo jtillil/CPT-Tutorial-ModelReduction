@@ -1,30 +1,7 @@
-%%% Version: January 24th, 2020
-%%%
-%%% call by: redmodel  =  model_order_reduction(model,seqofstates,relerrTOL)
-%%%
-%%% This function returns the classification of the state variables as
-%%% environmental, negligible, quasi steady state, mass conserved or
-%%% dynamical state variable
-%%%
-%%% Input:  model               structure specifying the model
-%%%         seqofstates         sequence, in which state variables are
-%%%                             tested for model order reduction
-%%%         relerrTOL           user defined relative error threshold
-%%%
-%%% Output: redmodel            structure specifying the reduced order model
-%%%
-%%% Citation:
-%%% 
-%%% Knoechel, Kloft and Huisinga, "Sensitivity based input-response index to 
-%%% analyse and reduce large-scale signalling networks"
-%%% PLOS Comp. Biology, 2020 (under review)
-%%% 
-%%% Authors: Jane Knoechel and Wilhelm Huisinga
-%%%
-
 function redmodel = mor_backwards_UFa_2023(model,seqofstates,relerrTOL,variability,var_obj_prctile)
 
 tic
+
 % indexing
 I = model.I;
 errtype = "rel2NE";
@@ -34,7 +11,7 @@ seqofstates = flip(seqofstates);
 t_ref = model.t_ref;
 X_ref = model.X_ref;
 
-%%% some ODE solver option and right hand side of ODE
+%%% some ODE solver options and right hand side of ODE
 % options.NonNegative = 1:model.I.nstates;
 % odefun = @(t,X,model)  model.odefun(t,X,model.par,model);
 % jacobian, if provided

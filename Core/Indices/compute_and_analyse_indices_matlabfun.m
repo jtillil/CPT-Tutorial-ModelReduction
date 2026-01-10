@@ -1,11 +1,3 @@
-%%% Version: 19 Jan 2023
-%%%
-%%%
-%%% input:      model: model strucutre
-%%%             action: what to do ('compute' or 'load' indices)
-%%%
-
-
 function model = compute_and_analyse_indices_matlabfun(model,action)
 
 fprintf('\n\n  This is compute_and_analyse_indices ...\n\n')
